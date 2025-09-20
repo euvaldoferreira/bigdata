@@ -323,8 +323,7 @@ check: ## 🔍 Verifica se o servidor está pronto para rodar o projeto
 	@if [ -f .env ]; then \
 		echo "$(GREEN)✅ Arquivo .env encontrado$(NC)"; \
 	else \
-		echo "$(RED)❌ Arquivo .env não encontrado. Copie .env.example$(NC)"; \
-		exit 1; \
+		echo "$(YELLOW)⚠️  Arquivo .env não encontrado. Execute: cp .env.example .env$(NC)"; \
 	fi
 	
 	@if command -v docker-compose >/dev/null 2>&1; then \
@@ -345,22 +344,30 @@ check: ## 🔍 Verifica se o servidor está pronto para rodar o projeto
 	fi
 	
 	@echo ""
-	@echo "$(GREEN)🎉 Servidor está pronto para rodar o projeto!$(NC)"
-	@echo "$(BLUE)💡 Comandos recomendados:$(NC)"
-	@TOTAL_RAM=$$(free -m | awk 'NR==2{print $$2}'); \
-	if [ $$TOTAL_RAM -lt 6000 ]; then \
-		echo "  • make minimal    (para seu hardware)"; \
-	elif [ $$TOTAL_RAM -lt 10000 ]; then \
-		echo "  • make lab        (recomendado para seu hardware)"; \
+	@if [ -f .env ]; then \
+		echo "$(GREEN)🎉 Servidor está pronto para rodar o projeto!$(NC)"; \
+		echo "$(BLUE)💡 Comandos recomendados:$(NC)"; \
+		TOTAL_RAM=$$(free -m | awk 'NR==2{print $$2}'); \
+		if [ $$TOTAL_RAM -lt 6000 ]; then \
+			echo "  • make minimal    (para seu hardware)"; \
+		elif [ $$TOTAL_RAM -lt 10000 ]; then \
+			echo "  • make lab        (recomendado para seu hardware)"; \
+		else \
+			echo "  • make start      (ambiente completo)"; \
+		fi; \
 	else \
-		echo "  • make start      (ambiente completo)"; \
+		echo "$(YELLOW)📋 Próximos passos para finalizar a configuração:$(NC)"; \
+		echo "  1. cp .env.example .env"; \
+		echo "  2. nano .env  # Edite as configurações"; \
+		echo "  3. make check  # Verifique novamente"; \
+		echo "  4. make minimal/lab/start  # Inicie o ambiente"; \
 	fi
 
 pre-check: ## ⚡ Verificação rápida dos requisitos mínimos
 	@echo "$(BLUE)⚡ Verificação rápida...$(NC)"
 	@command -v docker >/dev/null 2>&1 && echo "$(GREEN)✅ Docker$(NC)" || echo "$(RED)❌ Docker$(NC)"
 	@command -v docker-compose >/dev/null 2>&1 && echo "$(GREEN)✅ Docker Compose$(NC)" || echo "$(RED)❌ Docker Compose$(NC)"
-	@[ -f .env ] && echo "$(GREEN)✅ .env$(NC)" || echo "$(RED)❌ .env$(NC)"
+	@[ -f .env ] && echo "$(GREEN)✅ .env$(NC)" || echo "$(YELLOW)⚠️  .env (execute: cp .env.example .env)$(NC)"
 	@TOTAL_RAM=$$(free -m | awk 'NR==2{print $$2}'); \
 	if [ $$TOTAL_RAM -ge 3000 ]; then \
 		echo "$(GREEN)✅ RAM: $${TOTAL_RAM}MB$(NC)"; \
