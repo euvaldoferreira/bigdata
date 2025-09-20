@@ -529,7 +529,14 @@ auto-ip: ## 🌐 Detecta e configura IP automaticamente
 	@AUTO_IP=$$(ip route get 8.8.8.8 2>/dev/null | awk '{print $$7; exit}' || hostname -I | awk '{print $$1}'); \
 	if [ -n "$$AUTO_IP" ]; then \
 		echo "$(GREEN)✅ IP detectado: $$AUTO_IP$(NC)"; \
-		make set-ip IP=$$AUTO_IP; \
+		echo "$(BLUE)⚙️  Configurando SERVER_IP=$$AUTO_IP...$(NC)"; \
+		if [ ! -f .env ]; then \
+			echo "$(YELLOW)📝 Criando arquivo .env...$(NC)"; \
+			cp .env.example .env; \
+		fi; \
+		sed -i "s/SERVER_IP=.*/SERVER_IP=$$AUTO_IP/" .env; \
+		echo "$(GREEN)✅ IP configurado com sucesso!$(NC)"; \
+		echo "$(BLUE)💡 Verificar: make ports$(NC)"; \
 	else \
 		echo "$(RED)❌ Não foi possível detectar IP automaticamente$(NC)"; \
 		echo "$(YELLOW)💡 Use: make get-ip para ver IPs disponíveis$(NC)"; \
