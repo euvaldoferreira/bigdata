@@ -1,0 +1,113 @@
+version: '3.8'
+
+networks:
+  bigdata:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:
+
+services:
+  # PostgreSQL - Banco de dados (MÍNIMO)
+  postgres:
+    image: postgres:13-alpine
+    container_name: bigdata_postgres_minimal
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-airflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airflow}
+      POSTGRES_DB: ${POSTGRES_DB:-airflow}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bigdata
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # MinIO - Object Storage (MÍNIMO)
+  minio:
+    image: minio/minio:latest
+    container_name: bigdata_minio_minimal
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+      MINIO_SERVER_URL: http://${SERVER_IP:-localhost}:${MINIO_API_PORT:-9000}
+      MINIO_BROWSER_REDIRECT_URL: http://${SERVER_IP:-localhost}:${MINIO_CONSOLE_PORT:-9001}
+    command: server /data --console-address ":9001"
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - bigdata
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # Airflow Standalone (TUDO EM UM)
+  airflow-standalone:
+    image: apache/airflow:2.7.0-python3.10
+    container_name: bigdata_airflow_minimal
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-airflow}:${POSTGRES_PASSWORD:-airflow}@postgres/${POSTGRES_DB:-airflow}
+      AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:-''}
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__WEBSERVER__WORKERS: 1
+      AIRFLOW__WEBSERVER__BASE_URL: http://${SERVER_IP:-localhost}:${AIRFLOW_PORT:-8080}
+      _AIRFLOW_DB_UPGRADE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_ADMIN_USER:-admin}
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:-admin}
+      _PIP_ADDITIONAL_REQUIREMENTS: boto3 minio pandas
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./data:/opt/airflow/data
+    user: "1000:0"
+    ports:
+      - "${AIRFLOW_PORT:-8080}:8080"
+    networks:
+      - bigdata
+    restart: unless-stopped
+    command: standalone
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+          cpus: '1.0'
+
+  # Jupyter com Spark Local (TUDO EM UM)
+  jupyter-spark:
+    image: jupyter/all-spark-notebook:latest
+    container_name: bigdata_jupyter_minimal
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - SPARK_DRIVER_MEMORY=512m
+      - SPARK_EXECUTOR_MEMORY=512m
+    ports:
+      - "${JUPYTER_PORT:-8888}:8888"
+      - "${SPARK_LOCAL_UI_PORT:-4040}:4040"  # Spark UI local
+    volumes:
+      - ./jupyter/notebooks:/home/jovyan/work
+      - ./data:/home/jovyan/shared-data
+    networks:
+      - bigdata
+    user: root
+    command: start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.5'

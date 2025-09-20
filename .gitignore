@@ -1,0 +1,63 @@
+# Arquivos de ambiente
+.env
+*.env.local
+
+# Backups
+backups/
+*.backup
+*.bak
+
+# Logs
+logs/
+*.log
+
+# Dados temporários
+data/temp/
+data/input/
+data/output/
+
+# Backups
+backups/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+
+# Volumes Docker (se montados localmente)
+postgres_data/
+minio_data/
+jenkins_home/
+airflow_logs/
+spark_logs/
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Secrets
+secrets/
+*.key
+*.pem
+*.crt
+
+# Arquivos de configuração local específicos
+local_config/
+override.yml

@@ -1,0 +1,324 @@
+version: '3.8'
+
+networks:
+  bigdata:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:
+  jenkins_home:
+  airflow_logs:
+
+services:
+  # PostgreSQL - Banco de dados (OTIMIZADO)
+  postgres:
+    image: postgres:13-alpine
+    container_name: bigdata_postgres_lab
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-airflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airflow}
+      POSTGRES_DB: ${POSTGRES_DB:-airflow}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bigdata
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Redis - Message broker para Airflow (OTIMIZADO)
+  redis:
+    image: redis:7-alpine
+    container_name: bigdata_redis_lab
+    expose:
+      - 6379
+    networks:
+      - bigdata
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    # RECURSOS LIMITADOS
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # MinIO - Object Storage (OTIMIZADO)
+  minio:
+    image: minio/minio:latest
+    container_name: bigdata_minio_lab
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_SERVER_URL: http://${SERVER_IP:-localhost}:${MINIO_PORT:-9000}
+      MINIO_BROWSER_REDIRECT_URL: http://${SERVER_IP:-localhost}:${MINIO_CONSOLE_PORT:-9001}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - bigdata
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 2
+    restart: unless-stopped
+    # RECURSOS LIMITADOS
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # MinIO Client - Para criar buckets iniciais
+  minio-client:
+    image: minio/mc:latest
+    container_name: bigdata_minio_client_lab
+    depends_on:
+      - minio
+    networks:
+      - bigdata
+    entrypoint: >
+      /bin/sh -c "
+      sleep 10;
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin123;
+      /usr/bin/mc mb myminio/airflow-logs --ignore-existing;
+      /usr/bin/mc mb myminio/spark-data --ignore-existing;
+      /usr/bin/mc mb myminio/jupyter-data --ignore-existing;
+      exit 0;
+      "
+
+  # Airflow Webserver (OTIMIZADO)
+  airflow-webserver:
+    image: apache/airflow:2.7.0-python3.10
+    container_name: bigdata_airflow_webserver_lab
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
+      AIRFLOW__WEBSERVER__WORKERS: 2
+      AIRFLOW__WEBSERVER__BASE_URL: http://${SERVER_IP:-localhost}:${AIRFLOW_PORT:-8080}
+      _PIP_ADDITIONAL_REQUIREMENTS: boto3 minio pandas pyarrow
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/plugins:/opt/airflow/plugins
+      - airflow_logs:/opt/airflow/logs
+      - ./data:/opt/airflow/data
+    user: "1000:0"
+    ports:
+      - "8080:8080"
+    networks:
+      - bigdata
+    restart: unless-stopped
+    command: webserver
+    # RECURSOS LIMITADOS
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # Airflow Scheduler (OTIMIZADO)
+  airflow-scheduler:
+    image: apache/airflow:2.7.0-python3.10
+    container_name: bigdata_airflow_scheduler_lab
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 300
+      _PIP_ADDITIONAL_REQUIREMENTS: boto3 minio pandas pyarrow
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/plugins:/opt/airflow/plugins
+      - airflow_logs:/opt/airflow/logs
+      - ./data:/opt/airflow/data
+    user: "1000:0"
+    networks:
+      - bigdata
+    restart: unless-stopped
+    command: scheduler
+    # RECURSOS LIMITADOS
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Airflow Init (OTIMIZADO)
+  airflow-init:
+    image: apache/airflow:2.7.0-python3.10
+    container_name: bigdata_airflow_init_lab
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      _AIRFLOW_DB_UPGRADE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: admin
+      _PIP_ADDITIONAL_REQUIREMENTS: boto3 minio pandas pyarrow
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/plugins:/opt/airflow/plugins
+      - airflow_logs:/opt/airflow/logs
+      - ./data:/opt/airflow/data
+    user: "1000:0"
+    networks:
+      - bigdata
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mkdir -p /sources/logs /sources/dags /sources/plugins
+        chown -R "$${AIRFLOW_UID:-1000}:0" /sources/{logs,dags,plugins} 2>/dev/null || true
+        exec /entrypoint airflow version
+
+  # Spark Master (OTIMIZADO)
+  spark-master:
+    image: bitnami/spark:3.4.0
+    container_name: bigdata_spark_master_lab
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_MASTER_OPTS=-Xmx512m
+    ports:
+      - "8081:8080"
+      - "7077:7077"
+    volumes:
+      - ./spark/apps:/opt/bitnami/spark/apps
+      - ./spark/data:/opt/bitnami/spark/data
+      - ./data:/opt/bitnami/spark/shared-data
+    networks:
+      - bigdata
+    restart: unless-stopped
+    # RECURSOS LIMITADOS
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Spark Worker ÚNICO (OTIMIZADO)
+  spark-worker:
+    image: bitnami/spark:3.4.0
+    container_name: bigdata_spark_worker_lab
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_WORKER_OPTS=-Xmx512m
+    volumes:
+      - ./spark/apps:/opt/bitnami/spark/apps
+      - ./spark/data:/opt/bitnami/spark/data
+      - ./data:/opt/bitnami/spark/shared-data
+    networks:
+      - bigdata
+    restart: unless-stopped
+    # RECURSOS LIMITADOS
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+          cpus: '1.0'
+
+  # Jupyter Notebook (OTIMIZADO)
+  jupyter:
+    image: jupyter/pyspark-notebook:latest
+    container_name: bigdata_jupyter_lab
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_DRIVER_MEMORY=512m
+      - SPARK_EXECUTOR_MEMORY=512m
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./jupyter/notebooks:/home/jovyan/work
+      - ./data:/home/jovyan/shared-data
+      - ./spark/apps:/home/jovyan/spark-apps
+    networks:
+      - bigdata
+    user: root
+    command: start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''
+    restart: unless-stopped
+    # RECURSOS LIMITADOS
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # Jenkins (OPCIONAL para laboratório)
+  # Descomente se precisar de CI/CD
+  # jenkins:
+  #   build:
+  #     context: ./jenkins
+  #     dockerfile: Dockerfile
+  #   container_name: bigdata_jenkins_lab
+  #   environment:
+  #     - JENKINS_OPTS=--httpPort=8082
+  #     - JAVA_OPTS=-Xmx512m
+  #   ports:
+  #     - "8082:8082"
+  #   volumes:
+  #     - jenkins_home:/var/jenkins_home
+  #   networks:
+  #     - bigdata
+  #   restart: unless-stopped
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 1G
+  #         cpus: '0.5'
