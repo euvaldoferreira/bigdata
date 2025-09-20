@@ -431,6 +431,36 @@ clean-images: ## 🧹 Remove imagens não utilizadas
 	@docker system prune -f
 	@docker image prune -f
 
+clean-airflow: ## 🔥 Limpeza completa do Airflow (resolve problemas de versão)
+	@echo "$(BLUE)🔥 Limpeza completa do Airflow...$(NC)"
+	@echo "$(YELLOW)1. Parando containers do Airflow...$(NC)"
+	@docker-compose stop airflow-webserver airflow-scheduler airflow-worker airflow-flower airflow-init 2>/dev/null || true
+	@echo "$(YELLOW)2. Removendo containers do Airflow...$(NC)"
+	@docker-compose rm -f airflow-webserver airflow-scheduler airflow-worker airflow-flower airflow-init 2>/dev/null || true
+	@echo "$(YELLOW)3. Removendo volumes do Airflow...$(NC)"
+	@docker volume rm containers_airflow_logs 2>/dev/null || true
+	@echo "$(YELLOW)4. Removendo imagens antigas do Airflow...$(NC)"
+	@docker images apache/airflow --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}" | grep -v "2.8.0-python3.11" | awk 'NR>1{print $$2}' | xargs -r docker rmi -f 2>/dev/null || true
+	@echo "$(YELLOW)5. Fazendo pull da nova imagem...$(NC)"
+	@docker pull apache/airflow:2.8.0-python3.11
+	@echo "$(GREEN)✅ Limpeza do Airflow concluída!$(NC)"
+	@echo "$(BLUE)💡 Agora execute: make start$(NC)"
+
+reset-env: ## ♻️ Reset completo do ambiente (limpa tudo e reinicia)
+	@echo "$(BLUE)♻️ Reset completo do ambiente BigData...$(NC)"
+	@echo -n "$(RED)⚠️  Isso removerá TODOS os dados! Confirma? [y/N] $(NC)" && read ans && [ "$${ans:-N}" = y ] && { \
+		echo "$(YELLOW)🛑 Parando todos os serviços...$(NC)"; \
+		docker-compose down -v 2>/dev/null || true; \
+		echo "$(YELLOW)🧹 Removendo containers e volumes...$(NC)"; \
+		docker system prune -f; \
+		echo "$(YELLOW)🔄 Removendo imagens antigas...$(NC)"; \
+		docker images apache/airflow --format "{{.ID}}" | xargs -r docker rmi -f 2>/dev/null || true; \
+		echo "$(YELLOW)⬇️ Fazendo pull das novas imagens...$(NC)"; \
+		docker-compose pull; \
+		echo "$(GREEN)✅ Reset completo concluído!$(NC)"; \
+		echo "$(BLUE)💡 Execute: make start para iniciar$(NC)"; \
+	} || echo "$(GREEN)✅ Operação cancelada$(NC)"
+
 ## 🔧 Comandos Específicos de Serviços
 
 airflow-shell: ## 🐚 Acessa shell do Airflow

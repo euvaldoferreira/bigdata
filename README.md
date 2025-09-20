@@ -730,7 +730,43 @@ make requirements
 make minimal  # Em vez de make start
 ```
 
-#### 4. **Airflow não carrega DAGs**
+#### 4. **Airflow: "ModuleNotFoundError: No module named 'airflow'"**
+```bash
+# PROBLEMA: Versão antiga do Airflow em cache/volumes antigos
+# SOLUÇÃO: Limpeza completa do Airflow
+
+# Opção 1: Limpeza específica do Airflow (recomendada)
+make clean-airflow
+make start
+
+# Opção 2: Reset completo do ambiente
+make reset-env
+make start
+
+# Verificar se funcionou
+make health
+```
+
+#### 5. **Airflow: "Too old Airflow version" ou problemas de inicialização**
+```bash
+# PROBLEMA: Containers/imagens antigas conflitando
+# SOLUÇÃO: Limpeza e rebuild
+
+# 1. Parar tudo
+make stop-all
+
+# 2. Limpar imagens antigas
+docker images apache/airflow --format "table {{.Repository}}:{{.Tag}}\t{{.ID}}"
+docker rmi $(docker images apache/airflow:2.7.0* -q) 2>/dev/null || true
+
+# 3. Fazer pull das novas imagens
+make pull
+
+# 4. Iniciar novamente
+make start
+```
+
+#### 6. **Airflow não carrega DAGs**
 ```bash
 # Verificar logs do Airflow
 make logs-airflow
