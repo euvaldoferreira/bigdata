@@ -1,5 +1,3 @@
-version: '3.8'
-
 networks:
   bigdata:
     driver: bridge
@@ -54,7 +52,7 @@ services:
 
   # Airflow Standalone (TUDO EM UM)
   airflow-standalone:
-    image: apache/airflow:2.7.0-python3.10
+    image: apache/airflow:2.8.0-python3.11
     container_name: bigdata_airflow_minimal
     depends_on:
       - postgres
