@@ -68,6 +68,45 @@ MINIO_CONSOLE_PORT=9001
 
 ⚠️ **Importante:** Sempre altere as senhas padrão em ambientes de produção!
 
+### 🌐 Descobrindo o IP do Servidor
+
+Antes de configurar o `.env`, você precisa saber o IP do seu servidor:
+
+#### Opção A: Detecção Automática (Recomendado)
+```bash
+# Descobre todos os IPs disponíveis
+make get-ip
+
+# Detecta e configura automaticamente o IP principal
+make auto-ip
+```
+
+#### Opção B: Comandos Manuais do Sistema
+```bash
+# Método 1: IP da interface principal (mais usado)
+ip route get 8.8.8.8 | awk '{print $7; exit}'
+
+# Método 2: Primeiro IP não-localhost
+hostname -I | awk '{print $1}'
+
+# Método 3: Listar todas as interfaces
+ip addr show | grep -E 'inet [0-9]' | grep -v '127.0.0.1'
+```
+
+#### Opção C: Configuração Manual
+```bash
+# Configurar IP específico
+make set-ip IP=192.168.1.22
+
+# Ou editar diretamente o .env
+nano .env  # Altere SERVER_IP=SEU_IP_AQUI
+```
+
+**💡 Dicas:**
+- Para acesso local apenas: use `SERVER_IP=localhost` ou `SERVER_IP=127.0.0.1`
+- Para acesso de outras máquinas: use o IP da rede (ex: `192.168.1.22`)
+- Em VPS/Cloud: use o IP público ou privado conforme necessário
+
 ## 🚀 Instalação e Uso
 
 ### 1. Clone ou baixe o projeto
@@ -97,11 +136,15 @@ O comando `make check` verifica:
 ### 3. Configure o ambiente
 
 ```bash
-# Copie o arquivo de exemplo
-cp .env.example .env
+# Opção A: Configuração automática (recomendado)
+make auto-ip          # Detecta e configura IP automaticamente
+cp .env.example .env  # Se ainda não existe
+nano .env            # Ajuste senhas e outras configurações
 
-# Edite com suas configurações
-nano .env
+# Opção B: Configuração manual
+cp .env.example .env
+make get-ip          # Veja IPs disponíveis
+nano .env           # Configure SERVER_IP e senhas manualmente
 ```
 
 ### 4. Inicie o ambiente

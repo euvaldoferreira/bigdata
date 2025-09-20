@@ -486,6 +486,56 @@ install-deps: ## 📦 Instala dependências adicionais
 
 ## 🌐 Comandos de Rede
 
+get-ip: ## 🌐 Descobre o IP do servidor automaticamente
+	@echo "$(BLUE)🌐 Descobrindo IP do servidor...$(NC)"
+	@echo "$(YELLOW)📍 IPs disponíveis:$(NC)"
+	@echo ""
+	@echo "$(GREEN)1. IP Local (localhost):$(NC)"
+	@echo "   127.0.0.1"
+	@echo ""
+	@echo "$(GREEN)2. IP da Interface Principal:$(NC)"
+	@MAIN_IP=$$(ip route get 8.8.8.8 2>/dev/null | awk '{print $$7; exit}' || hostname -I | awk '{print $$1}'); \
+	echo "   $$MAIN_IP"
+	@echo ""
+	@echo "$(GREEN)3. Todos os IPs de Rede:$(NC)"
+	@ip addr show 2>/dev/null | grep -E 'inet [0-9]' | grep -v '127.0.0.1' | awk '{print "   " $$2}' | cut -d'/' -f1 || \
+	ifconfig 2>/dev/null | grep -E 'inet [0-9]' | grep -v '127.0.0.1' | awk '{print "   " $$2}' || \
+	echo "   Comando ip/ifconfig não disponível"
+	@echo ""
+	@echo "$(BLUE)💡 Para configurar no .env:$(NC)"
+	@MAIN_IP=$$(ip route get 8.8.8.8 2>/dev/null | awk '{print $$7; exit}' || hostname -I | awk '{print $$1}'); \
+	echo "   SERVER_IP=$$MAIN_IP"
+	@echo ""
+	@echo "$(YELLOW)⚙️  Comandos úteis:$(NC)"
+	@echo "   make set-ip IP=SEU_IP_AQUI  # Configura IP automaticamente"
+
+set-ip: ## 🌐 Configura IP no arquivo .env (uso: make set-ip IP=192.168.1.22)
+	@if [ -z "$(IP)" ]; then \
+		echo "$(RED)❌ Erro: IP não fornecido$(NC)"; \
+		echo "$(YELLOW)💡 Uso: make set-ip IP=192.168.1.22$(NC)"; \
+		exit 1; \
+	fi
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)📝 Criando arquivo .env...$(NC)"; \
+		cp .env.example .env; \
+	fi
+	@echo "$(BLUE)⚙️  Configurando SERVER_IP=$(IP)...$(NC)"
+	@sed -i 's/SERVER_IP=.*/SERVER_IP=$(IP)/' .env
+	@echo "$(GREEN)✅ IP configurado com sucesso!$(NC)"
+	@echo "$(BLUE)💡 Verificar: make ports$(NC)"
+
+auto-ip: ## 🌐 Detecta e configura IP automaticamente
+	@echo "$(BLUE)🔍 Detectando IP automaticamente...$(NC)"
+	@AUTO_IP=$$(ip route get 8.8.8.8 2>/dev/null | awk '{print $$7; exit}' || hostname -I | awk '{print $$1}'); \
+	if [ -n "$$AUTO_IP" ]; then \
+		echo "$(GREEN)✅ IP detectado: $$AUTO_IP$(NC)"; \
+		make set-ip IP=$$AUTO_IP; \
+	else \
+		echo "$(RED)❌ Não foi possível detectar IP automaticamente$(NC)"; \
+		echo "$(YELLOW)💡 Use: make get-ip para ver IPs disponíveis$(NC)"; \
+		echo "$(YELLOW)💡 Use: make set-ip IP=SEU_IP$(NC)"; \
+	fi
+
 ports: ## 🌐 Lista portas utilizadas
 	@echo "$(BLUE)🌐 Portas utilizadas pelo ambiente:$(NC)"
 	@echo "  • Airflow:     http://$(SERVER_IP):$(AIRFLOW_PORT)"
