@@ -419,13 +419,12 @@ backup: ## 💾 Backup dos dados
 
 clean: ## 🧹 Remove containers e volumes (CUIDADO!)
 	@echo "$(RED)⚠️  ATENÇÃO: Isso removerá TODOS os dados!$(NC)"
-	@read -p "Tem certeza? [y/N]: " -n 1 -r; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		echo "\n$(YELLOW)🧹 Limpando ambiente...$(NC)"; \
-		./scripts/stop.sh --clean; \
-	else \
-		echo "\n$(GREEN)✅ Operação cancelada$(NC)"; \
-	fi
+	@echo -n "Confirma? [y/N] " && read ans && [ "$${ans:-N}" = y ] && { \
+		echo "$(YELLOW)🧹 Limpando ambiente...$(NC)"; \
+		docker-compose down -v; \
+		docker system prune -f; \
+		echo "$(GREEN)✅ Limpeza concluída$(NC)"; \
+	} || echo "$(GREEN)✅ Operação cancelada$(NC)"
 
 clean-images: ## 🧹 Remove imagens não utilizadas
 	@echo "$(YELLOW)🧹 Removendo imagens não utilizadas...$(NC)"
@@ -529,14 +528,7 @@ auto-ip: ## 🌐 Detecta e configura IP automaticamente
 	@AUTO_IP=$$(ip route get 8.8.8.8 2>/dev/null | awk '{print $$7; exit}' || hostname -I | awk '{print $$1}'); \
 	if [ -n "$$AUTO_IP" ]; then \
 		echo "$(GREEN)✅ IP detectado: $$AUTO_IP$(NC)"; \
-		echo "$(BLUE)⚙️  Configurando SERVER_IP=$$AUTO_IP...$(NC)"; \
-		if [ ! -f .env ]; then \
-			echo "$(YELLOW)📝 Criando arquivo .env...$(NC)"; \
-			cp .env.example .env; \
-		fi; \
-		sed -i "s/SERVER_IP=.*/SERVER_IP=$$AUTO_IP/" .env; \
-		echo "$(GREEN)✅ IP configurado com sucesso!$(NC)"; \
-		echo "$(BLUE)💡 Verificar: make ports$(NC)"; \
+		make set-ip IP=$$AUTO_IP; \
 	else \
 		echo "$(RED)❌ Não foi possível detectar IP automaticamente$(NC)"; \
 		echo "$(YELLOW)💡 Use: make get-ip para ver IPs disponíveis$(NC)"; \
