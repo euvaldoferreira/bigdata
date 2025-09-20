@@ -477,14 +477,19 @@ docker-compose ps
 ### Spark
 
 ```bash
-# Submeter job Spark
+# Submeter job Spark (usando variáveis parametrizadas)
 docker-compose exec spark-master spark-submit \
-    --master spark://spark-master:7077 \
-    /opt/bitnami/spark/apps/example_spark_minio.py
+    --master ${SPARK_MASTER_URL} \
+    ${SPARK_APPS_PATH}/example_spark_minio.py
 
 # Acessar Spark shell
 docker-compose exec spark-master spark-shell \
-    --master spark://spark-master:7077
+    --master ${SPARK_MASTER_URL}
+
+# Alternativa com valores fixos (se preferir)
+# docker-compose exec spark-master spark-submit \
+#     --master spark://spark-master:7077 \
+#     /opt/bitnami/spark/apps/example_spark_minio.py
 ```
 
 ### MinIO

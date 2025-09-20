@@ -384,10 +384,15 @@ install-docker: ## 🐳 Instala Docker e Docker Compose
 submit-spark: ## ⚡ Submete job Spark de exemplo
 	@echo "$(BLUE)⚡ Submetendo job Spark...$(NC)"
 	@docker-compose exec spark-master spark-submit \
-		--master spark://spark-master:7077 \
+		--master $${SPARK_MASTER_URL:-spark://spark-master:7077} \
 		--executor-memory 1g \
 		--executor-cores 1 \
-		/opt/bitnami/spark/apps/example_spark_minio.py
+		$${SPARK_APPS_PATH:-/opt/bitnami/spark/apps}/example_spark_minio.py
+
+spark-shell: ## ⚡ Abre Spark shell interativo
+	@echo "$(BLUE)⚡ Abrindo Spark shell...$(NC)"
+	@docker-compose exec spark-master spark-shell \
+		--master $${SPARK_MASTER_URL:-spark://spark-master:7077}
 
 install-deps: ## 📦 Instala dependências adicionais
 	@echo "$(BLUE)📦 Instalando dependências adicionais...$(NC)"
