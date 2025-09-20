@@ -77,7 +77,34 @@ git clone <seu-repositorio>
 cd containers
 ```
 
-### 2. Inicie o ambiente
+### 2. Verifique se o servidor está pronto
+
+```bash
+# Verificação rápida dos requisitos mínimos
+make pre-check
+
+# Verificação completa do sistema (recomendado)
+make check
+```
+
+O comando `make check` verifica:
+- ✅ Docker e Docker Compose instalados
+- ✅ Recursos do sistema (RAM, CPU, disco)
+- ✅ Configurações válidas
+- ✅ Docker daemon rodando
+- 💡 Recomenda o ambiente ideal para seu hardware
+
+### 3. Configure o ambiente
+
+```bash
+# Copie o arquivo de exemplo
+cp .env.example .env
+
+# Edite com suas configurações
+nano .env
+```
+
+### 4. Inicie o ambiente
 
 #### Opção A: Usando Makefile (Recomendado)
 ```bash

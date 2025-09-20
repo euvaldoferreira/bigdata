@@ -144,7 +144,9 @@ help: ## 📖 Mostra esta ajuda
 	@echo "================================================"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "$(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo ""
-	@echo "$(YELLOW)💡 Exemplos de uso:$(NC)"
+	@echo "$(YELLOW)💡 Comandos essenciais:$(NC)"
+	@echo "  make pre-check # Verificação rápida dos requisitos"
+	@echo "  make check     # Verificação completa do servidor"
 	@echo "  make start     # Inicia todo o ambiente"
 	@echo "  make status    # Verifica status dos serviços"
 	@echo "  make logs      # Mostra logs de todos os serviços"
@@ -268,24 +270,104 @@ health: ## 🏥 Verifica saúde dos serviços
 		fi; \
 	done
 
-check: ## 🔍 Verifica configuração e dependências
-	@echo "$(BLUE)🔍 Verificando dependências...$(NC)"
+check: ## 🔍 Verifica se o servidor está pronto para rodar o projeto
+	@echo "$(BLUE)🔍 Verificando se o servidor está pronto...$(NC)"
+	@echo "================================================"
+	
+	@echo "$(BLUE)� 1. Verificando dependências...$(NC)"
 	@if command -v docker >/dev/null 2>&1; then \
 		echo "$(GREEN)✅ Docker encontrado: $$(docker --version)$(NC)"; \
 	else \
-		echo "$(YELLOW)⚠️  Docker não encontrado. Instale com: curl -fsSL https://get.docker.com | sh$(NC)"; \
+		echo "$(RED)❌ Docker não encontrado. Instale com: curl -fsSL https://get.docker.com | sh$(NC)"; \
+		exit 1; \
 	fi
 	@if command -v docker-compose >/dev/null 2>&1; then \
 		echo "$(GREEN)✅ Docker Compose encontrado: $$(docker-compose --version)$(NC)"; \
 	else \
-		echo "$(YELLOW)⚠️  Docker Compose não encontrado. Instale seguindo: https://docs.docker.com/compose/install/$(NC)"; \
+		echo "$(RED)❌ Docker Compose não encontrado. Instale seguindo: https://docs.docker.com/compose/install/$(NC)"; \
+		exit 1; \
 	fi
-	@echo "$(BLUE)🔍 Verificando configuração...$(NC)"
-	@if command -v docker-compose >/dev/null 2>&1; then \
-		docker-compose config >/dev/null 2>&1 && echo "$(GREEN)✅ docker-compose.yml válido$(NC)" || echo "$(RED)❌ docker-compose.yml inválido$(NC)"; \
+	
+	@echo "$(BLUE)💾 2. Verificando recursos do sistema...$(NC)"
+	@TOTAL_RAM=$$(free -m | awk 'NR==2{print $$2}'); \
+	echo "  • RAM Total: $${TOTAL_RAM}MB"; \
+	if [ $$TOTAL_RAM -lt 3000 ]; then \
+		echo "$(RED)⚠️  RAM insuficiente (mínimo 3GB). Atual: $${TOTAL_RAM}MB$(NC)"; \
+	elif [ $$TOTAL_RAM -lt 6000 ]; then \
+		echo "$(YELLOW)💡 RAM adequada para ambiente mínimo. Use: make minimal$(NC)"; \
+	elif [ $$TOTAL_RAM -lt 10000 ]; then \
+		echo "$(YELLOW)💡 RAM adequada para ambiente lab. Use: make lab$(NC)"; \
 	else \
-		echo "$(YELLOW)⚠️  Não é possível validar docker-compose.yml sem Docker Compose$(NC)"; \
+		echo "$(GREEN)✅ RAM suficiente para ambiente completo$(NC)"; \
 	fi
+	
+	@CPU_CORES=$$(nproc); \
+	echo "  • CPU Cores: $${CPU_CORES}"; \
+	if [ $$CPU_CORES -lt 2 ]; then \
+		echo "$(RED)⚠️  CPU insuficiente (mínimo 2 cores)$(NC)"; \
+	elif [ $$CPU_CORES -lt 4 ]; then \
+		echo "$(YELLOW)💡 CPU adequada para ambiente mínimo$(NC)"; \
+	else \
+		echo "$(GREEN)✅ CPU adequada$(NC)"; \
+	fi
+	
+	@DISK_FREE=$$(df -h . | awk 'NR==2{print $$4}' | sed 's/G//'); \
+	echo "  • Espaço em Disco: $${DISK_FREE}GB disponível"; \
+	if [ "$$(echo "$$DISK_FREE < 5" | bc -l 2>/dev/null || echo 0)" = "1" ]; then \
+		echo "$(RED)⚠️  Espaço insuficiente (mínimo 5GB)$(NC)"; \
+	else \
+		echo "$(GREEN)✅ Espaço em disco adequado$(NC)"; \
+	fi
+	
+	@echo "$(BLUE)� 3. Verificando configuração...$(NC)"
+	@if [ -f .env ]; then \
+		echo "$(GREEN)✅ Arquivo .env encontrado$(NC)"; \
+	else \
+		echo "$(RED)❌ Arquivo .env não encontrado. Copie .env.example$(NC)"; \
+		exit 1; \
+	fi
+	
+	@if command -v docker-compose >/dev/null 2>&1; then \
+		if docker-compose config >/dev/null 2>&1; then \
+			echo "$(GREEN)✅ docker-compose.yml válido$(NC)"; \
+		else \
+			echo "$(RED)❌ docker-compose.yml inválido$(NC)"; \
+			exit 1; \
+		fi; \
+	fi
+	
+	@echo "$(BLUE)🐳 4. Verificando Docker...$(NC)"
+	@if docker info >/dev/null 2>&1; then \
+		echo "$(GREEN)✅ Docker daemon rodando$(NC)"; \
+	else \
+		echo "$(RED)❌ Docker daemon não está rodando. Inicie com: sudo systemctl start docker$(NC)"; \
+		exit 1; \
+	fi
+	
+	@echo ""
+	@echo "$(GREEN)🎉 Servidor está pronto para rodar o projeto!$(NC)"
+	@echo "$(BLUE)💡 Comandos recomendados:$(NC)"
+	@TOTAL_RAM=$$(free -m | awk 'NR==2{print $$2}'); \
+	if [ $$TOTAL_RAM -lt 6000 ]; then \
+		echo "  • make minimal    (para seu hardware)"; \
+	elif [ $$TOTAL_RAM -lt 10000 ]; then \
+		echo "  • make lab        (recomendado para seu hardware)"; \
+	else \
+		echo "  • make start      (ambiente completo)"; \
+	fi
+
+pre-check: ## ⚡ Verificação rápida dos requisitos mínimos
+	@echo "$(BLUE)⚡ Verificação rápida...$(NC)"
+	@command -v docker >/dev/null 2>&1 && echo "$(GREEN)✅ Docker$(NC)" || echo "$(RED)❌ Docker$(NC)"
+	@command -v docker-compose >/dev/null 2>&1 && echo "$(GREEN)✅ Docker Compose$(NC)" || echo "$(RED)❌ Docker Compose$(NC)"
+	@[ -f .env ] && echo "$(GREEN)✅ .env$(NC)" || echo "$(RED)❌ .env$(NC)"
+	@TOTAL_RAM=$$(free -m | awk 'NR==2{print $$2}'); \
+	if [ $$TOTAL_RAM -ge 3000 ]; then \
+		echo "$(GREEN)✅ RAM: $${TOTAL_RAM}MB$(NC)"; \
+	else \
+		echo "$(RED)❌ RAM: $${TOTAL_RAM}MB (mínimo 3GB)$(NC)"; \
+	fi
+	@docker info >/dev/null 2>&1 && echo "$(GREEN)✅ Docker rodando$(NC)" || echo "$(RED)❌ Docker parado$(NC)"
 
 ## 🧪 Comandos de Teste
 
@@ -347,9 +429,6 @@ clean-images: ## 🧹 Remove imagens não utilizadas
 
 airflow-shell: ## 🐚 Acessa shell do Airflow
 	@docker-compose exec airflow-webserver bash
-
-spark-shell: ## 🐚 Acessa Spark shell
-	@docker-compose exec spark-master spark-shell --master spark://spark-master:7077
 
 jupyter-shell: ## 🐚 Acessa shell do Jupyter
 	@docker-compose exec jupyter bash
