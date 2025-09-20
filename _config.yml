@@ -1,0 +1,20 @@
+theme: jekyll-theme-cayman
+title: "Ambiente BigData"
+description: "Ambiente completo de BigData com Docker - Airflow, Spark, MinIO, Jupyter e Jenkins"
+
+# GitHub Pages configuration
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  hard_wrap: false
+
+# Plugins
+plugins:
+  - jekyll-default-layout
+  - jekyll-readme-index
+  - jekyll-titles-from-headings
+
+# Navigation
+readme_index:
+  enabled: true
