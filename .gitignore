@@ -59,6 +59,9 @@ secrets/
 *.pem
 *.crt
 
+# Pull Request drafts e templates locais
+.pr/
+
 # Arquivos de configuração local específicos
 local_config/
 override.yml
