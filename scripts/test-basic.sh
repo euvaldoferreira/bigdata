@@ -14,6 +14,17 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Function to get docker compose command
+get_docker_compose_cmd() {
+    if command -v docker &> /dev/null && docker compose version &> /dev/null 2>&1; then
+        echo "docker compose"
+    elif command -v docker-compose &> /dev/null; then
+        echo "docker-compose"
+    else
+        echo ""
+    fi
+}
+
 # Test counter
 TESTS_TOTAL=0
 TESTS_PASSED=0
@@ -64,7 +75,7 @@ run_test "Environment file exists" "[ -f .env ]"
 run_test "Docker is running" "docker info"
 
 # Test 3: Check if Docker Compose is available
-run_test "Docker Compose is available" "docker-compose --version"
+run_test "Docker Compose is available" "[ -n \"\$(get_docker_compose_cmd)\" ]"
 
 # Test 4: Check if Makefile exists and is valid
 run_test "Makefile exists and is valid" "make --dry-run help"
@@ -77,7 +88,7 @@ echo "-----------------------"
 run_test_verbose "Pre-check command" "make pre-check"
 
 # Test 6: Docker Compose config validation
-run_test_verbose "Docker Compose config" "docker-compose config"
+run_test_verbose "Docker Compose config" "\$(get_docker_compose_cmd) config"
 
 # Test 7: Help command
 run_test "Help command" "make help"
@@ -125,7 +136,7 @@ if timeout 300 make lab >/dev/null 2>&1; then
     
     echo ""
     echo "🛑 Cleaning up..."
-    make clean-all >/dev/null 2>&1 || true
+    make clean >/dev/null 2>&1 || true
     
 else
     echo -e "${RED}❌ FAIL: Lab environment failed to start${NC}"
