@@ -52,26 +52,19 @@ make ports      # URLs de acesso
 ## 🛠️ Comandos Principais
 
 ```bash
-# Controle do Ambiente
-make start      # Inicia ambiente completo
-make lab        # Inicia ambiente laboratório  
-make minimal    # Inicia ambiente mínimo
-make stop       # Para todos os serviços
-make restart    # Reinicia ambiente
+```bash
+# Comandos básicos
+make start             # 🚀 Inicia todos os serviços
+make stop              # 🛑 Para todos os serviços  
+make restart           # 🔄 Reinicia ambiente completo
+make status            # 📊 Status dos serviços
 
-# Monitoramento
-make status     # Status dos containers
-make logs       # Logs de todos os serviços
-make health     # Verificação de saúde
-make top        # Uso de recursos
-
-# Configuração
-make check      # Verificação completa do servidor
-make auto-ip    # Configura IP automaticamente
-make ports      # Lista portas utilizadas
-
-# Ajuda
-make help       # Lista todos os comandos
+# Build e logs
+make build             # 🏗️ Build das imagens customizadas
+make logs              # 📋 Mostra logs de todos os serviços
+make start-jupyter     # 📓 Inicia Jupyter
+make info              # ℹ️ Informações do ambiente
+```
 ```
 
 ## 📊 Ambientes Disponíveis
@@ -122,10 +115,11 @@ make start
 ## 📚 Documentação Completa
 
 - **[📖 Guia Completo](docs/)** - Documentação detalhada
-- **[🔧 Configuração Avançada](docs/configuration.md)** - Configurações específicas
-- **[🚨 Troubleshooting](docs/troubleshooting.md)** - Solução de problemas
+- **[ Troubleshooting](docs/troubleshooting.md)** - Solução de problemas
 - **[🔍 Comandos](docs/commands.md)** - Referência completa de comandos
 - **[🏗️ Arquitetura](docs/architecture.md)** - Detalhes técnicos
+- **[🔧 Git Best Practices](docs/git-best-practices.md)** - Melhores práticas Git
+- **[🛡️ Branch Protection](docs/branch-protection.md)** - Configuração de proteção
 
 ## 🤝 Contribuição
 

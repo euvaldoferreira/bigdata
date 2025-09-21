@@ -54,7 +54,7 @@ jobs:
         
     - name: 🛑 Cleanup
       if: always()
-      run: make clean-all
+      run: make clean
 
   full-tests:
     name: 🚀 Full Environment Tests
@@ -107,7 +107,7 @@ jobs:
         
     - name: 🛑 Cleanup
       if: always()
-      run: make clean-all
+      run: make clean
 
   stress-tests:
     name: 💪 Stress Tests
@@ -162,7 +162,7 @@ jobs:
         
     - name: 🛑 Cleanup
       if: always()
-      run: make clean-all
+      run: make clean
 
   test-matrix:
     name: 🔄 Test Matrix
@@ -183,9 +183,9 @@ jobs:
         
     - name: 🔧 Install Docker Compose ${{ matrix.compose-version }}
       run: |
-        sudo curl -L "https://github.com/docker/compose/releases/download/${{ matrix.compose-version }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
-        docker-compose --version
+        # Use docker compose (built-in) instead of standalone docker-compose
+        docker compose version
+        echo "Using built-in Docker Compose"
         
     - name: 📋 Create .env file
       run: |
@@ -202,4 +202,4 @@ jobs:
         
     - name: 🛑 Cleanup
       if: always()
-      run: make clean-all
+      run: make clean

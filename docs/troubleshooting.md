@@ -107,13 +107,14 @@ sudo chmod -R 755 airflow/dags/
 ### 8. **Spark Master não conecta Workers**
 ```bash
 # Verificar rede
-make debug-network
+docker network ls
+docker network inspect containers_default
 
 # Verificar logs
-make spark-logs
+make logs-spark
 
 # Reiniciar cluster
-make spark-restart
+make restart-spark
 ```
 
 ### 9. **Spark UI não acessível**
@@ -122,7 +123,7 @@ make spark-restart
 docker-compose ps spark-master
 
 # Verificar logs
-make spark-master-logs
+make logs-spark-master
 
 # Verificar porta
 curl -I http://localhost:8081
@@ -133,7 +134,7 @@ curl -I http://localhost:8081
 ### 10. **MinIO não inicia**
 ```bash
 # Verificar logs
-make minio-logs
+make logs-minio
 
 # Verificar permissões dos volumes
 ls -la data/minio/
@@ -159,7 +160,8 @@ docker volume prune -f
 ### 12. **Serviços não se comunicam**
 ```bash
 # Verificar rede do Docker
-make debug-network
+docker network ls
+docker network inspect containers_default
 
 # Testar conectividade
 docker-compose exec airflow-webserver ping postgres
