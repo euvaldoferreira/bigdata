@@ -1,129 +1,184 @@
-# 🔧 PySpark Environment Variables - Best Practices
+# ⚡ PySpark - Configuração de Variáveis de Ambiente
 
-## 📋 **Por que usar variáveis de ambiente?**
+Guia completo para configuração de variáveis de ambiente do PySpark no ambiente BigData.
 
-### ✅ **Vantagens:**
-1. **Flexibilidade** - Configurações diferentes para dev/test/prod
-2. **Reutilização** - Mesmo código, configurações diferentes
-3. **Segurança** - Credenciais e configurações sensíveis separadas
-4. **Manutenibilidade** - Mudanças sem rebuild de containers
-5. **Portabilidade** - Facilita deploy em diferentes ambientes
+## 🎯 Objetivo
 
-## 🌐 **Variáveis PySpark Configuradas**
+Este documento descreve as melhores práticas para configuração de variáveis de ambiente PySpark, garantindo integração adequada entre Jupyter, Spark e MinIO.
 
-### 📍 **Caminhos e Executáveis:**
+## 🔧 Variáveis Essenciais
+
+### Configuração Base
 ```bash
-SPARK_HOME=/opt/spark                    # Diretório de instalação do Spark
-PYSPARK_PYTHON=python3                   # Python para executors
-PYSPARK_DRIVER_PYTHON=jupyter            # Python para driver (Jupyter)
-PYSPARK_DRIVER_PYTHON_OPTS=lab           # Modo Jupyter (lab/notebook)
+# Localização do Spark
+SPARK_HOME=/usr/local/spark
+
+# Python paths para PySpark
+PYTHONPATH=/usr/local/spark/python:/usr/local/spark/python/lib/py4j-0.10.9.7-src.zip
+
+# Configurações Python do PySpark
+PYSPARK_PYTHON=python3
+PYSPARK_DRIVER_PYTHON=jupyter
+PYSPARK_DRIVER_PYTHON_OPTS=lab
 ```
 
-### 🌐 **Conectividade:**
+### Configuração de Recursos
 ```bash
-SPARK_DRIVER_HOST=jupyter                # Hostname do driver
-SPARK_DRIVER_BIND_ADDRESS=0.0.0.0       # Interface de bind
-SPARK_LOCAL_IP=jupyter                   # IP local para comunicação
-```
-
-### ⚡ **Performance:**
-```bash
-SPARK_DRIVER_MEMORY=1g                   # Memória do driver
-SPARK_EXECUTOR_MEMORY=1g                 # Memória dos executors
-SPARK_EXECUTOR_CORES=2                   # Cores por executor
-```
-
-## 🔧 **Como Customizar**
-
-### 1️⃣ **Editar arquivo `.env`:**
-```bash
-# Para mais memória em desenvolvimento:
-SPARK_DRIVER_MEMORY=2g
-SPARK_EXECUTOR_MEMORY=2g
-
-# Para produção com mais cores:
-SPARK_EXECUTOR_CORES=4
-```
-
-### 2️⃣ **Override via command line:**
-```bash
-SPARK_DRIVER_MEMORY=4g make start
-```
-
-### 3️⃣ **Diferentes ambientes:**
-```bash
-# .env.dev
+# Memória
 SPARK_DRIVER_MEMORY=1g
 SPARK_EXECUTOR_MEMORY=1g
 
-# .env.prod  
-SPARK_DRIVER_MEMORY=4g
-SPARK_EXECUTOR_MEMORY=8g
+# CPU Cores
+SPARK_DRIVER_CORES=1
+SPARK_EXECUTOR_CORES=2
+
+# Instâncias
+SPARK_EXECUTOR_INSTANCES=2
 ```
 
-## 📚 **Documentação das Variáveis**
-
-| Variável | Descrição | Default | Personalização |
-|----------|-----------|---------|----------------|
-| `SPARK_HOME` | Diretório do Spark | `/opt/spark` | Alterar apenas se Spark estiver em local diferente |
-| `PYSPARK_PYTHON` | Python para executors | `python3` | `python`, `python3.8`, etc. |
-| `PYSPARK_DRIVER_PYTHON` | Python para driver | `jupyter` | `ipython`, `python` |
-| `PYSPARK_DRIVER_PYTHON_OPTS` | Modo Jupyter | `lab` | `notebook`, `--no-browser` |
-| `SPARK_DRIVER_HOST` | Host do driver | `jupyter` | IP do container Jupyter |
-| `SPARK_DRIVER_BIND_ADDRESS` | Interface bind | `0.0.0.0` | IP específico se necessário |
-| `SPARK_LOCAL_IP` | IP local | `jupyter` | Para clusters multi-node |
-| `SPARK_DRIVER_MEMORY` | Memória driver | `1g` | `2g`, `4g`, etc. |
-| `SPARK_EXECUTOR_MEMORY` | Memória executors | `1g` | Baseado na memória disponível |
-| `SPARK_EXECUTOR_CORES` | Cores por executor | `2` | Baseado em CPU disponível |
-
-## 🚀 **Exemplos de Configuração**
-
-### 🔬 **Desenvolvimento (recursos limitados):**
+### Configuração de Rede
 ```bash
-SPARK_DRIVER_MEMORY=512m
-SPARK_EXECUTOR_MEMORY=512m
-SPARK_EXECUTOR_CORES=1
+# Cluster Spark
+SPARK_MASTER=spark://spark-master:7077
+
+# Configurações de rede
+SPARK_DRIVER_HOST=jupyter
+SPARK_DRIVER_BIND_ADDRESS=0.0.0.0
+SPARK_LOCAL_IP=jupyter
 ```
 
-### 🏢 **Produção (alta performance):**
-```bash
-SPARK_DRIVER_MEMORY=4g
-SPARK_EXECUTOR_MEMORY=8g
-SPARK_EXECUTOR_CORES=4
-```
+## 📊 Configuração por Ambiente
 
-### 🧪 **Teste (modo local):**
-```bash
-PYSPARK_DRIVER_PYTHON=python
-PYSPARK_DRIVER_PYTHON_OPTS=
-SPARK_MASTER=local[2]
-```
-
-## 🔄 **Implementação no docker-compose.yml**
-
+### Ambiente Principal (docker-compose.yml)
 ```yaml
 environment:
-  # ✅ CORRETO - Usando variáveis de ambiente
-  - SPARK_HOME=${SPARK_HOME:-/opt/spark}
+  - SPARK_HOME=/usr/local/spark
+  - PYTHONPATH=/usr/local/spark/python:/usr/local/spark/python/lib/py4j-0.10.9.7-src.zip
+  - GRANT_SUDO=yes
+  - SPARK_MASTER=${SPARK_MASTER:-spark://spark-master:7077}
   - PYSPARK_PYTHON=${PYSPARK_PYTHON:-python3}
-  
-  # ❌ INCORRETO - Valores hardcoded
-  - SPARK_HOME=/opt/spark
-  - PYSPARK_PYTHON=python3
+  - PYSPARK_DRIVER_PYTHON=${PYSPARK_DRIVER_PYTHON:-jupyter}
+  - PYSPARK_DRIVER_PYTHON_OPTS=${PYSPARK_DRIVER_PYTHON_OPTS:-lab}
+  - SPARK_DRIVER_MEMORY=${SPARK_DRIVER_MEMORY:-1g}
+  - SPARK_EXECUTOR_MEMORY=${SPARK_EXECUTOR_MEMORY:-1g}
+  - SPARK_DRIVER_CORES=${SPARK_DRIVER_CORES:-1}
+  - SPARK_EXECUTOR_CORES=${SPARK_EXECUTOR_CORES:-2}
+  - SPARK_EXECUTOR_INSTANCES=${SPARK_EXECUTOR_INSTANCES:-2}
 ```
 
-### **Benefícios da sintaxe `${VAR:-default}`:**
-- **Flexibilidade**: Usa valor do `.env` se definido
-- **Fallback**: Usa valor padrão se variável não existir
-- **Portabilidade**: Funciona em qualquer ambiente
+### Ambiente Lab (docker-compose.lab.yml)
+```yaml
+environment:
+  - SPARK_DRIVER_MEMORY=${SPARK_DRIVER_MEMORY:-512m}
+  - SPARK_EXECUTOR_MEMORY=${SPARK_EXECUTOR_MEMORY:-512m}
+  # ... outras configurações similares com recursos reduzidos
+```
 
-## 🎯 **Próximos Passos**
+### Ambiente Minimal (docker-compose.minimal.yml)
+```yaml
+environment:
+  - SPARK_DRIVER_MEMORY=${SPARK_DRIVER_MEMORY:-512m}
+  - SPARK_EXECUTOR_MEMORY=${SPARK_EXECUTOR_MEMORY:-512m}
+  # ... configurações para Spark local
+```
 
-1. **Teste as configurações** executando o notebook de exemplo
-2. **Monitore performance** via Spark UI
-3. **Ajuste memória/cores** conforme necessário
-4. **Documente** configurações específicas do seu projeto
+## 🔍 Resolução de Problemas
 
----
+### ModuleNotFoundError: No module named 'pyspark'
 
-**💡 Dica**: Sempre teste configurações em ambiente de desenvolvimento antes de aplicar em produção!
+**Causa**: PYTHONPATH não configurado corretamente
+
+**Solução**:
+```bash
+# Verificar se PYTHONPATH está definido
+echo $PYTHONPATH
+
+# Deve incluir:
+# /usr/local/spark/python:/usr/local/spark/python/lib/py4j-0.10.9.7-src.zip
+```
+
+### Erro de Conexão com Spark Master
+
+**Causa**: SPARK_MASTER não acessível
+
+**Solução**:
+```python
+# Verificar conectividade
+import socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+result = sock.connect_ex(('spark-master', 7077))
+if result == 0:
+    print("Conexão OK")
+else:
+    print("Erro de conexão")
+```
+
+### Problemas de Memória
+
+**Causa**: Configurações inadequadas de memória
+
+**Solução**:
+```bash
+# Ajustar no .env
+SPARK_DRIVER_MEMORY=2g
+SPARK_EXECUTOR_MEMORY=2g
+```
+
+## 🛠️ Arquivo .env
+
+Exemplo de configuração no arquivo `.env`:
+
+```bash
+# PySpark Configuration
+SPARK_HOME=/opt/spark
+PYSPARK_PYTHON=python3
+PYSPARK_DRIVER_PYTHON=jupyter
+PYSPARK_DRIVER_PYTHON_OPTS=lab
+SPARK_DRIVER_HOST=jupyter
+SPARK_DRIVER_BIND_ADDRESS=0.0.0.0
+SPARK_LOCAL_IP=jupyter
+SPARK_DRIVER_MEMORY=1g
+SPARK_EXECUTOR_MEMORY=1g
+SPARK_EXECUTOR_CORES=2
+SPARK_DRIVER_CORES=1
+SPARK_EXECUTOR_INSTANCES=2
+SPARK_MASTER=spark://spark-master:7077
+```
+
+## 📝 Validação da Configuração
+
+### Teste Básico
+```python
+import pyspark
+print(f"PySpark version: {pyspark.__version__}")
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName("Test").getOrCreate()
+print(f"Spark context: {spark.sparkContext.appName}")
+```
+
+### Teste de Integração
+```python
+# Teste completo de integração
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .appName("Integration-Test") \
+    .master("spark://spark-master:7077") \
+    .config("spark.executor.memory", "1g") \
+    .config("spark.executor.cores", "1") \
+    .getOrCreate()
+
+# Criar DataFrame teste
+data = [("Alice", 25), ("Bob", 30)]
+df = spark.createDataFrame(data, ["name", "age"])
+df.show()
+
+spark.stop()
+```
+
+## 🔗 Referências
+
+- [Documentação PySpark](https://spark.apache.org/docs/latest/api/python/)
+- [Configuração Spark](https://spark.apache.org/docs/latest/configuration.html)
+- [Jupyter + PySpark](https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html#jupyter-pyspark-notebook)

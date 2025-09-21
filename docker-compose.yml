@@ -410,9 +410,10 @@ services:
     environment:
       - JUPYTER_ENABLE_LAB=yes
       - GRANT_SUDO=yes
-      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_MASTER=${SPARK_MASTER:-spark://spark-master:7077}
       # Configurações específicas do PySpark para integração otimizada
-      - SPARK_HOME=${SPARK_HOME:-/opt/spark}
+      - SPARK_HOME=/usr/local/spark
+      - PYTHONPATH=/usr/local/spark/python:/usr/local/spark/python/lib/py4j-0.10.9.7-src.zip
       - PYSPARK_PYTHON=${PYSPARK_PYTHON:-python3}
       - PYSPARK_DRIVER_PYTHON=${PYSPARK_DRIVER_PYTHON:-jupyter}
       - PYSPARK_DRIVER_PYTHON_OPTS=${PYSPARK_DRIVER_PYTHON_OPTS:-lab}
@@ -423,7 +424,9 @@ services:
       - SPARK_LOCAL_IP=${SPARK_LOCAL_IP:-jupyter}
       - SPARK_DRIVER_MEMORY=${SPARK_DRIVER_MEMORY:-1g}
       - SPARK_EXECUTOR_MEMORY=${SPARK_EXECUTOR_MEMORY:-1g}
+      - SPARK_DRIVER_CORES=${SPARK_DRIVER_CORES:-1}
       - SPARK_EXECUTOR_CORES=${SPARK_EXECUTOR_CORES:-2}
+      - SPARK_EXECUTOR_INSTANCES=${SPARK_EXECUTOR_INSTANCES:-2}
     ports:
       - "8888:8888"
     volumes:
