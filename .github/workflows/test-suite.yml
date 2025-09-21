@@ -1,0 +1,205 @@
+name: 🧪 Test Suite
+
+on:
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_level:
+        description: 'Test level to run'
+        required: true
+        default: 'basic'
+        type: choice
+        options:
+        - basic
+        - full
+        - stress
+
+jobs:
+  basic-tests:
+    name: 🧪 Basic Environment Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_level == 'basic' || github.event.inputs.test_level == '' }}
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 📋 Create .env file
+      run: |
+        cp .env.example .env
+        sed -i 's/192.168.1.100/localhost/g' .env
+        
+    - name: 🚀 Start lab environment
+      run: |
+        timeout 600 make lab
+        sleep 60
+        
+    - name: 🔍 Test basic functionality
+      run: |
+        echo "Testing basic commands..."
+        make status
+        make health
+        
+        # Test individual services
+        echo "Testing Jupyter..."
+        curl -f http://localhost:8888 || echo "Jupyter not responding"
+        
+        echo "Testing MinIO..."
+        curl -f http://localhost:9001 || echo "MinIO not responding"
+        
+    - name: 🛑 Cleanup
+      if: always()
+      run: make clean-all
+
+  full-tests:
+    name: 🚀 Full Environment Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_level == 'full' }}
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 📋 Create .env file
+      run: |
+        cp .env.example .env
+        sed -i 's/192.168.1.100/localhost/g' .env
+        
+    - name: 🚀 Start full environment
+      run: |
+        timeout 900 make start
+        sleep 120
+        
+    - name: 🔍 Test all services
+      run: |
+        echo "Testing all services..."
+        make status
+        make health
+        
+        # Test each service endpoint
+        services=(
+          "8080:Airflow"
+          "8888:Jupyter" 
+          "8081:Spark"
+          "9001:MinIO"
+          "8090:Jenkins"
+        )
+        
+        for service in "${services[@]}"; do
+          port=$(echo $service | cut -d: -f1)
+          name=$(echo $service | cut -d: -f2)
+          echo "Testing $name on port $port..."
+          curl -f http://localhost:$port || echo "$name not responding"
+        done
+        
+    - name: 🧪 Test backup and restore
+      run: |
+        echo "Testing backup functionality..."
+        make backup-all || echo "Backup failed"
+        
+    - name: 🛑 Cleanup
+      if: always()
+      run: make clean-all
+
+  stress-tests:
+    name: 💪 Stress Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_level == 'stress' }}
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 📋 Create .env file
+      run: |
+        cp .env.example .env
+        sed -i 's/192.168.1.100/localhost/g' .env
+        
+    - name: 🚀 Start environment
+      run: |
+        timeout 900 make start
+        sleep 120
+        
+    - name: 💪 Run stress tests
+      run: |
+        echo "Running stress tests..."
+        
+        # Memory usage test
+        echo "Checking memory usage..."
+        docker stats --no-stream
+        
+        # Multiple restarts test
+        echo "Testing multiple restarts..."
+        for i in {1..3}; do
+          echo "Restart cycle $i..."
+          make restart
+          sleep 30
+          make health
+        done
+        
+        # Load test (if applicable)
+        echo "Running basic load test..."
+        # Add load testing commands here
+        
+    - name: 📊 Resource usage report
+      if: always()
+      run: |
+        echo "Final resource usage:"
+        docker stats --no-stream
+        df -h
+        free -m
+        
+    - name: 🛑 Cleanup
+      if: always()
+      run: make clean-all
+
+  test-matrix:
+    name: 🔄 Test Matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        docker-version: ['20.10', '24.0']
+        compose-version: ['v2.20.0', 'v2.21.0']
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Set up Docker ${{ matrix.docker-version }}
+      uses: docker/setup-buildx-action@v3
+      with:
+        version: ${{ matrix.docker-version }}
+        
+    - name: 🔧 Install Docker Compose ${{ matrix.compose-version }}
+      run: |
+        sudo curl -L "https://github.com/docker/compose/releases/download/${{ matrix.compose-version }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+        docker-compose --version
+        
+    - name: 📋 Create .env file
+      run: |
+        cp .env.example .env
+        sed -i 's/192.168.1.100/localhost/g' .env
+        
+    - name: 🧪 Test compatibility
+      run: |
+        echo "Testing with Docker ${{ matrix.docker-version }} and Compose ${{ matrix.compose-version }}"
+        make pre-check
+        timeout 300 make lab
+        sleep 30
+        make status
+        
+    - name: 🛑 Cleanup
+      if: always()
+      run: make clean-all

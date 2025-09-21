@@ -1,0 +1,28 @@
+# GitHub CODEOWNERS
+
+# Global owners - require review for all changes
+* @euvaldoferreira
+
+# Documentation requires review
+docs/ @euvaldoferreira
+*.md @euvaldoferreira
+README.md @euvaldoferreira
+CONTRIBUTING.md @euvaldoferreira
+CODE_OF_CONDUCT.md @euvaldoferreira
+
+# Infrastructure and core files require review
+docker-compose.yml @euvaldoferreira
+Makefile @euvaldoferreira
+.env.example @euvaldoferreira
+
+# CI/CD configuration requires review
+.github/ @euvaldoferreira
+.github/workflows/ @euvaldoferreira
+
+# Git configuration
+.gitignore @euvaldoferreira
+.gitmessage @euvaldoferreira
+
+# GitHub Pages configuration
+_config.yml @euvaldoferreira
+index.md @euvaldoferreira
