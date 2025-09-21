@@ -1,0 +1,20 @@
+{
+  "security": {
+    "ignore-unpinned-requirements": false,
+    "ignore-vulnerabilities": {
+      "_comment": "Add vulnerability IDs here to ignore them after review",
+      "_format": "vulnerability_id: reason for ignoring",
+      "_examples": {
+        "42194": "Dev dependency - not used in production", 
+        "42195": "Low severity - risk accepted after review"
+      }
+    }
+  },
+  "alert": {
+    "ignore-environment-variables": true,
+    "ignore-files": [
+      ".env.example",
+      "*.log"
+    ]
+  }
+}
