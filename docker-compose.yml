@@ -91,6 +91,7 @@ services:
   # Airflow Webserver
   airflow-webserver:
     image: apache/airflow:2.8.0-python3.11
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: bigdata_airflow_webserver
     depends_on:
       postgres:
@@ -133,6 +134,7 @@ services:
   # Airflow Scheduler
   airflow-scheduler:
     image: apache/airflow:2.8.0-python3.11
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: bigdata_airflow_scheduler
     depends_on:
       postgres:
@@ -172,6 +174,7 @@ services:
   # Airflow Worker
   airflow-worker:
     image: apache/airflow:2.8.0-python3.11
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: bigdata_airflow_worker
     depends_on:
       postgres:
@@ -213,6 +216,7 @@ services:
   # Airflow Flower - Monitoring Celery
   airflow-flower:
     image: apache/airflow:2.8.0-python3.11
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: bigdata_airflow_flower
     depends_on:
       postgres:
@@ -236,6 +240,7 @@ services:
   # Airflow Init
   airflow-init:
     image: apache/airflow:2.8.0-python3.11
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     container_name: bigdata_airflow_init
     depends_on:
       postgres:
@@ -255,14 +260,12 @@ services:
       _AIRFLOW_WWW_USER_CREATE: 'true'
       _AIRFLOW_WWW_USER_USERNAME: admin
       _AIRFLOW_WWW_USER_PASSWORD: admin
-      _PIP_ADDITIONAL_REQUIREMENTS: "boto3==1.28.57 minio==7.1.17 pandas==2.0.3 pyarrow==14.0.1 psycopg2-binary==2.9.7"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/plugins:/opt/airflow/plugins
       - ./airflow/config/airflow.cfg:/opt/airflow/airflow.cfg
       - airflow_logs:/opt/airflow/logs
       - ./data:/opt/airflow/data
-    user: "1000:0"
     networks:
       - bigdata
     entrypoint: /bin/bash
