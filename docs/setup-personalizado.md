@@ -22,6 +22,16 @@ Para novos colaboradores, use o script automático:
 
 ## 🔧 Setup Manual (se preferir)
 
+### 0. Configurar Plataforma Docker
+```bash
+# Detectar e configurar automaticamente
+make detect-platform
+
+# OU configurar manualmente no .env
+echo "DOCKER_PLATFORM=linux/amd64" >> .env  # Para Intel/Codespaces
+echo "DOCKER_PLATFORM=linux/arm64" >> .env  # Para Mac M1/M2
+```
+
 ### 1. Atualizar CODEOWNERS
 ```bash
 # Substitua @euvaldoferreira por @SEU_USUARIO

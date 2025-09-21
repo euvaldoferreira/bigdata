@@ -8,6 +8,8 @@ Esta pasta contém a documentação completa do projeto BigData.
 - **[Comandos](commands.md)** - Referência completa do Makefile
 - **[Arquitetura](architecture.md)** - Detalhes técnicos e componentes
 - **[Setup Personalizado](setup-personalizado.md)** - Configurações personalizadas
+- **[Configuração de Plataforma](platform-setup.md)** - Docker platform para diferentes ambientes
+- **[Gerenciamento de Portas](port-management.md)** - Configuração flexível de portas
 
 ### 🛠️ Manutenção e Operação
 - **[Troubleshooting](troubleshooting.md)** - Solução de problemas

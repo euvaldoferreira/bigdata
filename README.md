@@ -17,6 +17,8 @@ git clone https://github.com/euvaldoferreira/bigdata.git
 cd bigdata/containers
 
 # 2. Configure o ambiente
+make detect-platform  # Detecta plataforma automaticamente
+make detect-ports     # Detecta portas disponíveis
 cp .env.example .env
 nano .env  # Edite IP e senhas
 
@@ -36,7 +38,8 @@ make minimal    # Ambiente mínimo (4GB RAM)
 ```bash
 make status     # Status dos serviços
 make health     # Verificação de saúde
-make ports      # URLs de acesso
+make urls       # URLs de acesso
+make check-ports # Verifica conflitos de porta
 ```
 
 ## 🌐 Interfaces Web
