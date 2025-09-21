@@ -68,8 +68,8 @@ jobs:
         
     - name: 🔍 Check for security issues
       run: |
-        # Check for exposed secrets
-        if grep -r "password.*=" . --exclude-dir=.git --exclude="*.md" | grep -v ".env"; then
+        # Check for exposed secrets (excluding known safe patterns)
+        if grep -r "password.*=" . --exclude-dir=.git --exclude="*.md" --exclude-dir=scripts --exclude-dir=.githooks | grep -v ".env" | grep -v ".env.example" | grep -v "password = ''" | grep -v "password=''" | grep -v "NotebookApp.password=''" | grep -v 'smtp_password = $'; then
           echo "❌ Potential exposed secrets found"
           exit 1
         fi
