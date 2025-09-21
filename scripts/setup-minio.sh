@@ -13,8 +13,19 @@ done
 
 echo "MinIO disponível. Configurando alias..."
 
-# Configura alias do MinIO
-mc alias set myminio http://minio:9000 minioadmin minioadmin123
+# Carregar .env se existir
+if [ -f .env ]; then
+    source .env
+fi
+
+# Verificar se as credenciais estão definidas
+if [ -z "$MINIO_ROOT_USER" ] || [ -z "$MINIO_ROOT_PASSWORD" ]; then
+    echo "❌ Erro: MINIO_ROOT_USER e MINIO_ROOT_PASSWORD devem estar definidas no .env"
+    exit 1
+fi
+
+# Configura alias do MinIO usando variáveis de ambiente
+mc alias set myminio http://minio:9000 "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}"
 
 echo "Criando buckets..."
 
