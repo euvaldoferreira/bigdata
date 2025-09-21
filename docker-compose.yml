@@ -411,6 +411,19 @@ services:
       - JUPYTER_ENABLE_LAB=yes
       - GRANT_SUDO=yes
       - SPARK_MASTER=spark://spark-master:7077
+      # Configurações específicas do PySpark para integração otimizada
+      - SPARK_HOME=${SPARK_HOME:-/opt/spark}
+      - PYSPARK_PYTHON=${PYSPARK_PYTHON:-python3}
+      - PYSPARK_DRIVER_PYTHON=${PYSPARK_DRIVER_PYTHON:-jupyter}
+      - PYSPARK_DRIVER_PYTHON_OPTS=${PYSPARK_DRIVER_PYTHON_OPTS:-lab}
+      - SPARK_OPTS=--master=spark://spark-master:7077
+      # Configurações de conectividade e performance
+      - SPARK_DRIVER_HOST=${SPARK_DRIVER_HOST:-jupyter}
+      - SPARK_DRIVER_BIND_ADDRESS=${SPARK_DRIVER_BIND_ADDRESS:-0.0.0.0}
+      - SPARK_LOCAL_IP=${SPARK_LOCAL_IP:-jupyter}
+      - SPARK_DRIVER_MEMORY=${SPARK_DRIVER_MEMORY:-1g}
+      - SPARK_EXECUTOR_MEMORY=${SPARK_EXECUTOR_MEMORY:-1g}
+      - SPARK_EXECUTOR_CORES=${SPARK_EXECUTOR_CORES:-2}
     ports:
       - "8888:8888"
     volumes:

@@ -91,8 +91,10 @@ services:
     container_name: bigdata_jupyter_minimal
     environment:
       - JUPYTER_ENABLE_LAB=yes
-      - SPARK_DRIVER_MEMORY=512m
-      - SPARK_EXECUTOR_MEMORY=512m
+      - SPARK_DRIVER_MEMORY=${SPARK_DRIVER_MEMORY:-512m}
+      - SPARK_EXECUTOR_MEMORY=${SPARK_EXECUTOR_MEMORY:-512m}
+      - PYSPARK_PYTHON=${PYSPARK_PYTHON:-python3}
+      - PYSPARK_DRIVER_PYTHON=${PYSPARK_DRIVER_PYTHON:-python3}
     ports:
       - "${JUPYTER_PORT:-8888}:8888"
       - "${SPARK_LOCAL_UI_PORT:-4040}:4040"  # Spark UI local
