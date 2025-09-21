@@ -55,7 +55,15 @@ jobs:
         
     - name: ✅ Validate Docker Compose files
       run: |
-        docker-compose config > /dev/null
+        # Try both docker compose and docker-compose for compatibility
+        if command -v docker &> /dev/null && docker compose version &> /dev/null; then
+          docker compose config > /dev/null
+        elif command -v docker-compose &> /dev/null; then
+          docker-compose config > /dev/null
+        else
+          echo "❌ Neither docker compose nor docker-compose found"
+          exit 1
+        fi
         echo "✅ Docker Compose configuration is valid"
         
     - name: 🔍 Check for security issues
@@ -93,8 +101,8 @@ jobs:
         echo "Testing make commands..."
         make help
         make pre-check
-        # Test dry-run of other commands
-        make --dry-run clean-all
+        # Test dry-run of available commands
+        make --dry-run clean
         make --dry-run backup-all
         echo "✅ Essential commands working"
 
@@ -189,13 +197,17 @@ jobs:
     - name: 🔍 Check services health
       run: |
         # Check if essential services are responding
-        docker-compose ps
+        if command -v docker &> /dev/null && docker compose version &> /dev/null; then
+          docker compose ps
+        elif command -v docker-compose &> /dev/null; then
+          docker-compose ps
+        fi
         # Add specific health checks here
         
     - name: 🛑 Cleanup
       if: always()
       run: |
-        make clean-all || true
+        make clean || true
 
   conventional-commits:
     name: 📝 Conventional Commits Check
@@ -219,10 +231,20 @@ jobs:
             continue
           fi
           
+          # Skip merge commits
+          if [[ "$commit" =~ ^Merge[[:space:]] ]]; then
+            echo "⏭️ Skipping merge commit: $commit"
+            continue
+          fi
+          
           # Check conventional commit format
           if ! echo "$commit" | grep -E "^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+"; then
             echo "❌ Invalid commit message: $commit"
             echo "Use format: <type>[scope]: <description>"
+            echo "Examples:"
+            echo "  feat: add new feature"
+            echo "  fix: resolve bug in authentication"  
+            echo "  docs: update installation guide"
             exit 1
           fi
         done <<< "$commits"
