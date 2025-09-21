@@ -18,6 +18,17 @@ CHECKS_TOTAL=0
 CHECKS_PASSED=0
 CHECKS_FAILED=0
 
+# Function to get docker compose command
+get_docker_compose_cmd() {
+    if command -v docker &> /dev/null && docker compose version &> /dev/null 2>&1; then
+        echo "docker compose"
+    elif command -v docker-compose &> /dev/null; then
+        echo "docker-compose"
+    else
+        echo ""
+    fi
+}
+
 # Function to run CI check
 run_ci_check() {
     local check_name="$1"
@@ -51,7 +62,12 @@ run_ci_check "Pre-checks" "
 # 2. Docker Compose Validation
 run_ci_check "Docker Compose Validation" "
     echo 'Validating Docker Compose configuration...'
-    docker-compose config >/dev/null
+    COMPOSE_CMD=\$(get_docker_compose_cmd)
+    if [ -z \"\$COMPOSE_CMD\" ]; then
+        echo '❌ Docker Compose not found'
+        exit 1
+    fi
+    \$COMPOSE_CMD config >/dev/null
     echo 'Docker Compose configuration is valid'
 "
 
@@ -60,7 +76,7 @@ run_ci_check "Makefile Commands Test" "
     echo 'Testing Makefile commands...'
     make help >/dev/null
     make --dry-run clean || echo 'clean command not found, using alternative'
-    make --dry-run backup || echo 'backup command not found, using alternative'
+    make --dry-run backup-all || echo 'backup-all command not found, using alternative'
     echo 'Makefile commands are working'
 "
 
@@ -135,8 +151,11 @@ run_ci_check "Quick Environment Test" "
     echo 'Running quick environment test...'
     timeout 120 make lab >/dev/null 2>&1 || true
     sleep 10
-    docker-compose ps
-    make clean-all >/dev/null 2>&1 || true
+    COMPOSE_CMD=\$(get_docker_compose_cmd)
+    if [ -n \"\$COMPOSE_CMD\" ]; then
+        \$COMPOSE_CMD ps
+    fi
+    make clean >/dev/null 2>&1 || true
     echo 'Quick environment test completed'
 "
 
