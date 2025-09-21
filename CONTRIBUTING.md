@@ -25,7 +25,7 @@ Obrigado por seu interesse em contribuir com o projeto **Ambiente BigData**! Est
 ### Primeira Contribuição
 1. **Fork** do repositório
 2. **Clone** seu fork
-3. **Configure** o ambiente
+3. **Configure** o ambiente personalizado
 4. **Teste** o ambiente local
 5. **Faça** sua primeira contribuição
 
@@ -38,8 +38,12 @@ Obrigado por seu interesse em contribuir com o projeto **Ambiente BigData**! Est
 git clone https://github.com/SEU_USUARIO/bigdata.git
 cd bigdata/containers
 
+# 3. Configure automaticamente (RECOMENDADO)
+./scripts/setup-repo.sh SEU_USUARIO OWNER_ORIGINAL
+
+# OU configure manualmente:
 # 3. Adicione o repositório original como upstream
-git remote add upstream https://github.com/euvaldoferreira/bigdata.git
+git remote add upstream https://github.com/OWNER_ORIGINAL/bigdata.git
 
 # 4. Verifique os remotes
 git remote -v

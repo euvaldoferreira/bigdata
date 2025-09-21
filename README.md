@@ -129,21 +129,24 @@ make start
 
 ## 🤝 Contribuição
 
-1. Fork o projeto
-2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
-3. Commit: `git commit -m 'feat: adiciona nova funcionalidade'`
-4. Push: `git push origin feature/nova-funcionalidade`
-5. Abra um Pull Request
+Quer contribuir? Veja nosso [Guia de Contribuição](CONTRIBUTING.md)!
+
+### Setup Rápido para Contribuidores
+```bash
+git clone https://github.com/SEU_USUARIO/bigdata.git
+cd bigdata/containers
+./scripts/setup-repo.sh SEU_USUARIO euvaldoferreira
+```
 
 ## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
 
 ## 🆘 Suporte
 
 - **[Issues](https://github.com/euvaldoferreira/bigdata/issues)** - Reporte bugs
 - **[Discussions](https://github.com/euvaldoferreira/bigdata/discussions)** - Perguntas e discussões  
 - **[Wiki](https://github.com/euvaldoferreira/bigdata/wiki)** - Guias avançados
+
+**💡 Para contribuidores:** Use `./scripts/setup-repo.sh` para configuração personalizada!
 
 ---
 

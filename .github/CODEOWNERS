@@ -1,6 +1,7 @@
 # GitHub CODEOWNERS
 
 # Global owners - require review for all changes
+# Replace @euvaldoferreira with your GitHub username
 * @euvaldoferreira
 
 # Documentation requires review
