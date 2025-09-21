@@ -1,0 +1,23 @@
+# Conventional Commit Message Template
+# Use este template para criar mensagens de commit consistentes
+#
+# Formato: <tipo>[escopo opcional]: <descrição>
+#
+# Tipos principais:
+# - feat: Nova funcionalidade
+# - fix: Correção de bug  
+# - docs: Mudanças na documentação
+# - style: Formatação (sem mudança de código)
+# - refactor: Refatoração de código
+# - test: Adição/correção de testes
+# - chore: Tarefas de manutenção
+#
+# Exemplos:
+# feat: adiciona comando make backup-all
+# fix: corrige erro de conexão com PostgreSQL
+# docs: atualiza guia de instalação
+# refactor: reorganiza estrutura de comandos do Makefile
+#
+# Mantenha a primeira linha com no máximo 50 caracteres
+# Use o corpo para explicar o que e por que (não como)
+# Separar título e corpo com linha em branco
