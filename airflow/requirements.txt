@@ -8,7 +8,7 @@ requests==2.32.4
 
 # Database connectors
 psycopg2-binary==2.9.7
-sqlalchemy==1.4.49
+sqlalchemy==2.0.43
 
 # Data processing
 pyspark==3.4.1
