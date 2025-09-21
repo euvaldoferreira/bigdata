@@ -1,6 +1,6 @@
 # Core Python packages
 boto3==1.28.57
-minio==7.1.17
+minio==7.2.16
 pandas==2.0.3
 pyarrow==14.0.1
 numpy==1.24.3
