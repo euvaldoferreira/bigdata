@@ -1,6 +1,35 @@
 # 🚨 Troubleshooting - Soluções de Problemas
 
-## 🔧 Problemas de Instalação
+## �️ Problemas de Plataforma Docker
+
+### 0. **Erro "exec format error" ou containers não funcionam**
+```bash
+# Detectar e configurar plataforma automaticamente
+make detect-platform
+
+# Depois rebuild os containers
+docker-compose down
+docker-compose pull
+make start
+```
+
+**Causas comuns:**
+- ✅ **GitHub Codespaces**: Sempre usar `linux/amd64`
+- ✅ **Mac M1/M2**: Usar `linux/arm64` para melhor performance
+- ✅ **Intel/AMD**: Usar `linux/amd64`
+
+**Configuração manual:**
+```bash
+# Para Mac M1/M2
+echo "DOCKER_PLATFORM=linux/arm64" >> .env
+
+# Para Intel/Codespaces/AMD
+echo "DOCKER_PLATFORM=linux/amd64" >> .env
+```
+
+📚 **Documentação completa**: [Configuração de Plataforma](platform-setup.md)
+
+## �🔧 Problemas de Instalação
 
 ### 1. **Permission denied while trying to connect to Docker daemon**
 ```bash
@@ -32,14 +61,24 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 ### 3. **Erro "Port already in use"**
 ```bash
-# Verificar portas ocupadas
+# Detectar e configurar portas automaticamente
+make detect-ports
+
+# Ou verificar conflitos manualmente
+make check-ports
+
+# Ver quais portas estão sendo usadas
 sudo netstat -tlnp | grep :8080
 
 # Parar todos os containers
 make stop-all
+```
 
-# Ou alterar portas no arquivo .env
-nano .env
+**Solução automática recomendada:**
+```bash
+# Detecta portas disponíveis e reconfigura automaticamente
+make detect-ports
+make start
 ```
 
 ### 4. **Containers não iniciam (recursos insuficientes)**
