@@ -68,7 +68,7 @@ services:
       _AIRFLOW_WWW_USER_CREATE: 'true'
       _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_ADMIN_USER:-admin}
       _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:-admin}
-      _PIP_ADDITIONAL_REQUIREMENTS: boto3 minio pandas
+      _PIP_ADDITIONAL_REQUIREMENTS: boto3==1.28.57 minio==7.1.17 pandas==2.0.3 pyarrow==14.0.1 requests==2.32.4
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./data:/opt/airflow/data
