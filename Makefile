@@ -200,6 +200,35 @@ ps-all: ## 📋 Lista containers de TODOS os ambientes
 
 ## 🔧 Comandos de Desenvolvimento
 
+detect-platform: ## 🔍 Detecta plataforma Docker adequada para o ambiente atual
+	@echo "$(BLUE)🔍 Detectando plataforma Docker...$(NC)"
+	@PLATFORM=$$(./scripts/detect-platform.sh | grep "Plataforma detectada:" | cut -d: -f2 | xargs); \
+	echo "$(GREEN)✅ Plataforma detectada: $$PLATFORM$(NC)"; \
+	if [ -f .env ]; then \
+		if grep -q "DOCKER_PLATFORM=" .env; then \
+			sed -i "s/DOCKER_PLATFORM=.*/DOCKER_PLATFORM=$$PLATFORM/" .env; \
+			echo "$(GREEN)✅ Arquivo .env atualizado$(NC)"; \
+		else \
+			echo "DOCKER_PLATFORM=$$PLATFORM" >> .env; \
+			echo "$(GREEN)✅ DOCKER_PLATFORM adicionado ao .env$(NC)"; \
+		fi; \
+	else \
+		echo "DOCKER_PLATFORM=$$PLATFORM" > .env; \
+		echo "$(GREEN)✅ Arquivo .env criado com DOCKER_PLATFORM=$$PLATFORM$(NC)"; \
+	fi
+
+detect-ports: ## 🔍 Detecta e configura portas disponíveis automaticamente
+	@echo "$(BLUE)🔍 Detectando portas disponíveis...$(NC)"
+	@./scripts/detect-ports.sh detect
+
+check-ports: ## 🔍 Verifica conflitos de portas
+	@echo "$(BLUE)🔍 Verificando conflitos de portas...$(NC)"
+	@./scripts/detect-ports.sh check
+
+urls: ## 🌐 Mostra URLs de acesso dos serviços
+	@echo "$(BLUE)🌐 URLs de acesso:$(NC)"
+	@./scripts/detect-ports.sh urls
+
 build: ## 🏗️ Build das imagens customizadas
 	@echo "$(BLUE)🏗️ Building imagens customizadas...$(NC)"
 	@docker-compose build --no-cache jenkins
