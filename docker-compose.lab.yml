@@ -211,8 +211,8 @@ services:
     command:
       - -c
       - |
-        mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "$${AIRFLOW_UID:-1000}:0" /sources/{logs,dags,plugins} 2>/dev/null || true
+        mkdir -p /opt/airflow/logs /opt/airflow/dags /opt/airflow/plugins
+        chown -R "$${AIRFLOW_UID:-1000}:0" /opt/airflow/{logs,dags,plugins} 2>/dev/null || true
         exec /entrypoint airflow version
 
   # Spark Master (OTIMIZADO)
@@ -279,11 +279,16 @@ services:
     container_name: bigdata_jupyter_lab
     environment:
       - JUPYTER_ENABLE_LAB=yes
-      - SPARK_MASTER=spark://spark-master:7077
-      - SPARK_DRIVER_MEMORY=512m
-      - SPARK_EXECUTOR_MEMORY=512m
+      - SPARK_MASTER=${SPARK_MASTER:-spark://spark-master:7077}
+      - SPARK_DRIVER_MEMORY=${SPARK_DRIVER_MEMORY:-512m}
+      - SPARK_EXECUTOR_MEMORY=${SPARK_EXECUTOR_MEMORY:-512m}
+      - SPARK_DRIVER_CORES=${SPARK_DRIVER_CORES:-1}
+      - SPARK_EXECUTOR_CORES=${SPARK_EXECUTOR_CORES:-1}
+      - SPARK_EXECUTOR_INSTANCES=${SPARK_EXECUTOR_INSTANCES:-2}
+      - PYSPARK_PYTHON=${PYSPARK_PYTHON:-python3}
+      - PYSPARK_DRIVER_PYTHON=${PYSPARK_DRIVER_PYTHON:-python3}
     ports:
-      - "8888:8888"
+      - "${JUPYTER_PORT:-8888}:8888"
     volumes:
       - ./jupyter/notebooks:/home/jovyan/work
       - ./data:/home/jovyan/shared-data
