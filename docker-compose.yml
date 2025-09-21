@@ -16,7 +16,11 @@ services:
     container_name: bigdata_postgres
     environment:
       POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
+      POSTGRES_PASSWORD: air        fi
+        mkdir -p /opt/airflow/logs /opt/airflow/dags /opt/airflow/plugins
+        chown -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins}
+        chmod -R 775 /opt/airflow/logs
+        exec /entrypoint airflow version
       POSTGRES_DB: airflow
     volumes:
       - postgres_data:/var/lib/postgresql/data
