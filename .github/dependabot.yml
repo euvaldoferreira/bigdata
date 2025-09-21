@@ -27,83 +27,91 @@ updates:
         update-types: ["version-update:semver-patch"]
 
   # Docker dependencies  
-  # Dependabot configuration for automated security updates
+  # Dependabot configuration - SECURITY ONLY to avoid breaking changes
 # Documentation: https://docs.github.com/en/code-security/dependabot
 
 version: 2
 updates:
-  # Python dependencies in requirements.txt
+  # Python dependencies - SECURITY UPDATES ONLY
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"  
+      interval: "daily"  # Check daily for security issues
       time: "09:00"
-    open-pull-requests-limit: 3  # Reduced to avoid spam
+    open-pull-requests-limit: 5  # Allow more for critical security
     commit-message:
-      prefix: "chore"
-      prefix-development: "chore"
+      prefix: "security"
+      prefix-development: "security"
       include: "scope"
     reviewers:
       - "euvaldoferreira"
     assignees:
-      - "euvaldoferreira"  # Auto-assign for immediate attention
+      - "euvaldoferreira"
     labels:
-      - "dependencies"
       - "security"
-      - "python"
-      - "needs-review"  # Clear indicator for manual review
-    # Conservative approach - ignore non-critical updates
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
-    # Only allow security updates and major versions
+      - "dependencies" 
+      - "critical-review"
+    # ONLY SECURITY UPDATES - no version bumps
     allow:
-      - dependency-type: "direct"
-        update-types: ["version-update:semver-major"]
       - dependency-type: "all"
         update-types: ["security-update"]
+    # Block ALL non-security updates
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor", "version-update:semver-major"]
 
-  # Docker dependencies - even more conservative
+  # Docker dependencies - SECURITY ONLY
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "monthly"  # Less frequent
-      day: "first tuesday"
-      time: "09:00"
-    open-pull-requests-limit: 2
+      interval: "daily"  # Security is critical
+      time: "10:00"
+    open-pull-requests-limit: 3
     commit-message:
-      prefix: "chore"
-      prefix-development: "chore"
+      prefix: "security"
+      prefix-development: "security"
       include: "scope"
     reviewers:
       - "euvaldoferreira"
     assignees:
       - "euvaldoferreira"
     labels:
-      - "dependencies"
+      - "security"
       - "docker"
-      - "needs-review"
-    # Only security updates for Docker
+      - "critical-review"
+    # ONLY SECURITY UPDATES
     allow:
       - dependency-type: "all"
         update-types: ["security-update"]
+    # Block version updates
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor", "version-update:semver-major"]
 
-  # GitHub Actions - quarterly updates
+  # GitHub Actions - SECURITY ONLY  
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "weekly"  # Less critical than runtime dependencies
+      day: "monday"
+      time: "09:00"
     open-pull-requests-limit: 2
     commit-message:
-      prefix: "ci"
+      prefix: "security"
       include: "scope"
     reviewers:
       - "euvaldoferreira"
     labels:
-      - "ci"
+      - "security"
       - "github-actions"
-      - "needs-review"
+      - "critical-review"
+    # ONLY SECURITY UPDATES
+    allow:
+      - dependency-type: "all"
+        update-types: ["security-update"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor", "version-update:semver-major"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
