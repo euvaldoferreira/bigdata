@@ -110,7 +110,7 @@ services:
       AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
       AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
       AIRFLOW__WEBSERVER__BASE_URL: http://${SERVER_IP:-localhost}:${AIRFLOW_PORT:-8080}
-      _PIP_ADDITIONAL_REQUIREMENTS: "apache-airflow==2.8.0 boto3 minio pandas pyarrow psycopg2-binary"
+      _PIP_ADDITIONAL_REQUIREMENTS: "boto3==1.28.57 minio==7.1.17 pandas==2.0.3 pyarrow==14.0.1 psycopg2-binary==2.9.7"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/plugins:/opt/airflow/plugins
@@ -151,7 +151,7 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
       AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
-      _PIP_ADDITIONAL_REQUIREMENTS: "apache-airflow==2.8.0 boto3 minio pandas pyarrow psycopg2-binary"
+      _PIP_ADDITIONAL_REQUIREMENTS: "boto3==1.28.57 minio==7.1.17 pandas==2.0.3 pyarrow==14.0.1 psycopg2-binary==2.9.7"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/plugins:/opt/airflow/plugins
@@ -190,7 +190,7 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
       AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
-      _PIP_ADDITIONAL_REQUIREMENTS: "apache-airflow==2.8.0 boto3 minio pandas pyarrow psycopg2-binary"
+      _PIP_ADDITIONAL_REQUIREMENTS: "boto3==1.28.57 minio==7.1.17 pandas==2.0.3 pyarrow==14.0.1 psycopg2-binary==2.9.7"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/plugins:/opt/airflow/plugins
@@ -255,7 +255,7 @@ services:
       _AIRFLOW_WWW_USER_CREATE: 'true'
       _AIRFLOW_WWW_USER_USERNAME: admin
       _AIRFLOW_WWW_USER_PASSWORD: admin
-      _PIP_ADDITIONAL_REQUIREMENTS: "apache-airflow==2.8.0 boto3 minio pandas pyarrow psycopg2-binary"
+      _PIP_ADDITIONAL_REQUIREMENTS: "boto3==1.28.57 minio==7.1.17 pandas==2.0.3 pyarrow==14.0.1 psycopg2-binary==2.9.7"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/plugins:/opt/airflow/plugins

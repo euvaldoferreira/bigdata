@@ -121,7 +121,7 @@ services:
       AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
       AIRFLOW__WEBSERVER__WORKERS: 2
       AIRFLOW__WEBSERVER__BASE_URL: http://${SERVER_IP:-localhost}:${AIRFLOW_PORT:-8080}
-      _PIP_ADDITIONAL_REQUIREMENTS: boto3 minio pandas pyarrow
+      _PIP_ADDITIONAL_REQUIREMENTS: boto3==1.28.57 minio==7.1.17 pandas==2.0.3 pyarrow==14.0.1 requests==2.32.4 black==24.3.0
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/plugins:/opt/airflow/plugins
@@ -159,7 +159,7 @@ services:
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 300
-      _PIP_ADDITIONAL_REQUIREMENTS: boto3 minio pandas pyarrow
+      _PIP_ADDITIONAL_REQUIREMENTS: boto3==1.28.57 minio==7.1.17 pandas==2.0.3 pyarrow==14.0.1 requests==2.32.4 black==24.3.0
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/plugins:/opt/airflow/plugins
@@ -196,7 +196,7 @@ services:
       _AIRFLOW_WWW_USER_CREATE: 'true'
       _AIRFLOW_WWW_USER_USERNAME: admin
       _AIRFLOW_WWW_USER_PASSWORD: admin
-      _PIP_ADDITIONAL_REQUIREMENTS: boto3 minio pandas pyarrow
+      _PIP_ADDITIONAL_REQUIREMENTS: boto3==1.28.57 minio==7.1.17 pandas==2.0.3 pyarrow==14.0.1 requests==2.32.4 black==24.3.0
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/plugins:/opt/airflow/plugins
