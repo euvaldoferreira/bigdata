@@ -1,0 +1,46 @@
+#!/bin/sh
+# Pre-commit hook for BigData project
+# Runs basic checks before allowing commit
+
+echo "🔍 Running pre-commit checks..."
+
+# Check if we're on main branch (shouldn't commit directly)
+branch=$(git symbolic-ref HEAD 2>/dev/null | cut -d"/" -f 3)
+if [ "$branch" = "main" ]; then
+    echo "❌ Direct commits to main branch are not allowed!"
+    echo "Please create a feature branch:"
+    echo "  git checkout -b feature/your-feature-name"
+    exit 1
+fi
+
+# Run project pre-check
+echo "🧪 Running make pre-check..."
+if ! make pre-check >/dev/null 2>&1; then
+    echo "❌ Pre-check failed. Please fix issues before committing."
+    echo "Run 'make pre-check' to see details."
+    exit 1
+fi
+
+# Check for TODO/FIXME in staged files
+echo "🔍 Checking for TODO/FIXME in staged files..."
+if git diff --cached --name-only | xargs grep -l "TODO\|FIXME" 2>/dev/null; then
+    echo "⚠️  Warning: Found TODO/FIXME in staged files. Consider resolving them."
+    echo "Continue anyway? (y/N)"
+    read -r response
+    if [ "$response" != "y" ] && [ "$response" != "Y" ]; then
+        echo "❌ Commit aborted by user."
+        exit 1
+    fi
+fi
+
+# Check for secrets in staged files
+echo "🔒 Checking for potential secrets..."
+secrets_patterns="password.*=|secret.*=|key.*=|token.*="
+if git diff --cached | grep -iE "$secrets_patterns" | grep -v ".env.example"; then
+    echo "❌ Potential secrets found in staged files!"
+    echo "Please remove sensitive information before committing."
+    exit 1
+fi
+
+echo "✅ Pre-commit checks passed!"
+exit 0
