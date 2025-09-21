@@ -172,7 +172,7 @@ git clone https://github.com/SEU_USUARIO/bigdata.git
 cd bigdata/containers
 
 # 3. Adicione o repositório original
-git remote add upstream https://github.com/euvaldoferreira/bigdata.git
+git remote add upstream https://github.com/OWNER_ORIGINAL/bigdata.git
 
 # 4. Verifique os remotes
 git remote -v

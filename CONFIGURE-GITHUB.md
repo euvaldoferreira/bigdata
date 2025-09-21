@@ -6,7 +6,7 @@ Para ativar a proteção da branch e CI/CD, você precisa configurar no GitHub:
 
 ### 🔧 **1. Configurar Proteção da Branch (URGENTE)**
 
-1. **Acesse:** https://github.com/euvaldoferreira/bigdata/settings/branches
+1. **Acesse:** `https://github.com/SEU_USUARIO/bigdata/settings/branches`
 2. **Clique:** "Add rule" ou "Add protection rule"
 3. **Configure:**
 
@@ -36,7 +36,7 @@ Branch name pattern: main
 
 ### 🚀 **2. Ativar GitHub Actions**
 
-1. **Acesse:** https://github.com/euvaldoferreira/bigdata/settings/actions
+1. **Acesse:** `https://github.com/SEU_USUARIO/bigdata/settings/actions`
 2. **Configure:**
    - ✅ Allow GitHub Actions
    - ✅ Allow actions and reusable workflows
@@ -44,7 +44,7 @@ Branch name pattern: main
 
 ### 📄 **3. Ativar GitHub Pages**
 
-1. **Acesse:** https://github.com/euvaldoferreira/bigdata/settings/pages
+1. **Acesse:** `https://github.com/SEU_USUARIO/bigdata/settings/pages`
 2. **Configure:**
    - Source: GitHub Actions
    - ✅ Enforce HTTPS

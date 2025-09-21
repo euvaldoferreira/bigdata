@@ -93,19 +93,19 @@ Crie arquivo `.github/CODEOWNERS`:
 
 ```bash
 # Global owners
-* @euvaldoferreira
+* @SEU_USUARIO
 
 # Documentation
-docs/ @euvaldoferreira
-*.md @euvaldoferreira
+docs/ @SEU_USUARIO
+*.md @SEU_USUARIO
 
 # Infrastructure
-docker-compose.yml @euvaldoferreira
-Makefile @euvaldoferreira
-.env.example @euvaldoferreira
+docker-compose.yml @SEU_USUARIO
+Makefile @SEU_USUARIO
+.env.example @SEU_USUARIO
 
 # CI/CD
-.github/ @euvaldoferreira
+.github/ @SEU_USUARIO
 ```
 
 ## 🔧 Configuração Local Recomendada
