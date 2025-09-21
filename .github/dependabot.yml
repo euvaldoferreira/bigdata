@@ -12,26 +12,90 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 5
     commit-message:
-      prefix: "security"
+      prefix: "chore"
+      prefix-development: "chore"
       include: "scope"
     reviewers:
       - "euvaldoferreira"
     labels:
-      - "security"
       - "dependencies"
+      - "security"
+      - "python"
     # Ignore patch updates for stable packages
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-patch"]
 
-  # Docker dependencies
+  # Docker dependencies  
+  # Dependabot configuration - SECURITY ONLY to avoid breaking changes
+# Documentation: https://docs.github.com/en/code-security/dependabot
+
+version: 2
+updates:
+  # Python dependencies - SECURITY UPDATES ONLY
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"  # Check daily for security issues
+      time: "09:00"
+    open-pull-requests-limit: 5  # Allow more for critical security
+    commit-message:
+      prefix: "security"
+      prefix-development: "security"
+      include: "scope"
+    reviewers:
+      - "euvaldoferreira"
+    assignees:
+      - "euvaldoferreira"
+    labels:
+      - "security"
+      - "dependencies" 
+      - "critical-review"
+    # ONLY SECURITY UPDATES - no version bumps
+    allow:
+      - dependency-type: "all"
+        update-types: ["security-update"]
+    # Block ALL non-security updates
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor", "version-update:semver-major"]
+
+  # Docker dependencies - SECURITY ONLY
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "tuesday"
-      time: "09:00"
+      interval: "daily"  # Security is critical
+      time: "10:00"
     open-pull-requests-limit: 3
+    commit-message:
+      prefix: "security"
+      prefix-development: "security"
+      include: "scope"
+    reviewers:
+      - "euvaldoferreira"
+    assignees:
+      - "euvaldoferreira"
+    labels:
+      - "security"
+      - "docker"
+      - "critical-review"
+    # ONLY SECURITY UPDATES
+    allow:
+      - dependency-type: "all"
+        update-types: ["security-update"]
+    # Block version updates
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor", "version-update:semver-major"]
+
+  # GitHub Actions - SECURITY ONLY  
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"  # Less critical than runtime dependencies
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 2
     commit-message:
       prefix: "security"
       include: "scope"
@@ -39,17 +103,31 @@ updates:
       - "euvaldoferreira"
     labels:
       - "security"
-      - "docker"
+      - "github-actions"
+      - "critical-review"
+    # ONLY SECURITY UPDATES
+    allow:
+      - dependency-type: "all"
+        update-types: ["security-update"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor", "version-update:semver-major"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
+      day: "monday"
+      time: "09:00"
     open-pull-requests-limit: 3
     commit-message:
       prefix: "ci"
+      prefix-development: "ci"
       include: "scope"
+    reviewers:
+      - "euvaldoferreira"
     labels:
-      - "ci"
+      - "dependencies"
       - "github-actions"
+      - "ci"
