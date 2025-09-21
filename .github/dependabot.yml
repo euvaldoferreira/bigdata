@@ -12,44 +12,114 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 5
     commit-message:
-      prefix: "security"
+      prefix: "chore"
+      prefix-development: "chore"
       include: "scope"
     reviewers:
       - "euvaldoferreira"
     labels:
-      - "security"
       - "dependencies"
+      - "security"
+      - "python"
     # Ignore patch updates for stable packages
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-patch"]
 
-  # Docker dependencies
-  - package-ecosystem: "docker"
+  # Docker dependencies  
+  # Dependabot configuration for automated security updates
+# Documentation: https://docs.github.com/en/code-security/dependabot
+
+version: 2
+updates:
+  # Python dependencies in requirements.txt
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "tuesday"
+      day: "monday"  
       time: "09:00"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 3  # Reduced to avoid spam
     commit-message:
-      prefix: "security"
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    reviewers:
+      - "euvaldoferreira"
+    assignees:
+      - "euvaldoferreira"  # Auto-assign for immediate attention
+    labels:
+      - "dependencies"
+      - "security"
+      - "python"
+      - "needs-review"  # Clear indicator for manual review
+    # Conservative approach - ignore non-critical updates
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
+    # Only allow security updates and major versions
+    allow:
+      - dependency-type: "direct"
+        update-types: ["version-update:semver-major"]
+      - dependency-type: "all"
+        update-types: ["security-update"]
+
+  # Docker dependencies - even more conservative
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"  # Less frequent
+      day: "first tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    reviewers:
+      - "euvaldoferreira"
+    assignees:
+      - "euvaldoferreira"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "needs-review"
+    # Only security updates for Docker
+    allow:
+      - dependency-type: "all"
+        update-types: ["security-update"]
+
+  # GitHub Actions - quarterly updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "ci"
       include: "scope"
     reviewers:
       - "euvaldoferreira"
     labels:
-      - "security"
-      - "docker"
+      - "ci"
+      - "github-actions"
+      - "needs-review"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
+      day: "monday"
+      time: "09:00"
     open-pull-requests-limit: 3
     commit-message:
       prefix: "ci"
+      prefix-development: "ci"
       include: "scope"
+    reviewers:
+      - "euvaldoferreira"
     labels:
-      - "ci"
+      - "dependencies"
       - "github-actions"
+      - "ci"
