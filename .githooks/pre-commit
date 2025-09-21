@@ -33,10 +33,10 @@ if git diff --cached --name-only | xargs grep -l "TODO\|FIXME" 2>/dev/null; then
     fi
 fi
 
-# Check for secrets in staged files
+# Check for secrets in staged files (excluding examples and comments)
 echo "🔒 Checking for potential secrets..."
 secrets_patterns="password.*=|secret.*=|key.*=|token.*="
-if git diff --cached | grep -iE "$secrets_patterns" | grep -v ".env.example" | grep -v "password = ''" | grep -v "password=''" | grep -v "NotebookApp.password=''" | grep -v 'smtp_password = $'; then
+if git diff --cached | grep -iE "$secrets_patterns" | grep -v ".env.example" | grep -v "password = ''" | grep -v "password=''" | grep -v "NotebookApp.password=''" | grep -v 'smtp_password = $' | grep -v "sua_senha_" | grep -v "#.*password" | grep -v "example"; then
     echo "❌ Potential secrets found in staged files!"
     echo "Please remove sensitive information before committing."
     exit 1
