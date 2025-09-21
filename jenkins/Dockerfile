@@ -1,12 +1,5 @@
 FROM jenkins/jenkins:lts
 
-## Instalar Python packages úteis para CI/CD
-RUN pip3 install --break-system-packages \
-    boto3==1.28.57 \
-    minio==7.1.17 \
-    requests==2.32.4 \
-    pyyaml==6.0.1 \
-    docker==7.1.0ar como root para adicionar dependências
 USER root
 
 # Instalar Docker CLI, Python e outras dependências
@@ -31,23 +24,23 @@ RUN apt-get update && \
 RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /usr/local/bin/mc && \
     chmod +x /usr/local/bin/mc
 
-# Instalar Python packages úteis para CI/CD com versões fixas
+# Instalar Python packages úteis para CI/CD com versões alinhadas ao projeto
 RUN pip3 install --break-system-packages \
-    boto3==1.34.144 \
-    minio==7.2.7 \
-    requests==2.32.3 \
+    boto3==1.28.57 \
+    minio==7.1.17 \
+    requests==2.32.4 \
     pyyaml==6.0.1 \
     docker==7.1.0
 
-# Adicionar usuário jenkins ao grupo docker
-RUN usermod -aG docker jenkins
+# Criar grupo docker e adicionar usuário jenkins ao grupo
+RUN groupadd -f docker && usermod -aG docker jenkins
 
 # Voltar para usuário jenkins
 USER jenkins
 
 # Instalar plugins do Jenkins automaticamente
-COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
-RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+# COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+# RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
 
 # Copiar configurações iniciais
 COPY init.groovy.d/ /usr/share/jenkins/ref/init.groovy.d/
