@@ -98,13 +98,14 @@ check_port_conflicts() {
 show_access_urls() {
     if [ -f .env ]; then
         source .env
+        SERVER_IP=${SERVER_IP:-localhost}
         echo "🌐 URLs de acesso:"
-        echo "   Airflow:     http://localhost:${AIRFLOW_PORT:-8080}"
-        echo "   MinIO UI:    http://localhost:${MINIO_CONSOLE_PORT:-9001}"
-        echo "   Jupyter:     http://localhost:${JUPYTER_PORT:-8888}"
-        echo "   Spark UI:    http://localhost:${SPARK_UI_PORT:-8081}"
-        echo "   Jenkins:     http://localhost:${JENKINS_PORT:-8082}"
-        echo "   Flower:      http://localhost:${FLOWER_PORT:-5555}"
+        echo "   Airflow:     http://${SERVER_IP}:${AIRFLOW_PORT:-8080}"
+        echo "   MinIO UI:    http://${SERVER_IP}:${MINIO_CONSOLE_PORT:-9001}"
+        echo "   Jupyter:     http://${SERVER_IP}:${JUPYTER_PORT:-8888}"
+        echo "   Spark UI:    http://${SERVER_IP}:${SPARK_UI_PORT:-8081}"
+        echo "   Jenkins:     http://${SERVER_IP}:${JENKINS_PORT:-8082}"
+        echo "   Flower:      http://${SERVER_IP}:${FLOWER_PORT:-5555}"
     fi
 }
 

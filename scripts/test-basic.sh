@@ -116,8 +116,16 @@ if timeout 300 make lab >/dev/null 2>&1; then
     # Test 11: Check specific services
     echo "🔍 Testing individual services..."
     
+    # Carregar configurações
+    if [ -f .env ]; then
+        source .env
+    fi
+    SERVER_IP=${SERVER_IP:-localhost}
+    JUPYTER_PORT=${JUPYTER_PORT:-8888}
+    MINIO_CONSOLE_PORT=${MINIO_CONSOLE_PORT:-9001}
+    
     # Jupyter
-    if curl -f http://localhost:8888 >/dev/null 2>&1; then
+    if curl -f http://${SERVER_IP}:${JUPYTER_PORT} >/dev/null 2>&1; then
         echo -e "${GREEN}✅ Jupyter is responding${NC}"
         TESTS_PASSED=$((TESTS_PASSED + 1))
     else
@@ -126,7 +134,7 @@ if timeout 300 make lab >/dev/null 2>&1; then
     TESTS_TOTAL=$((TESTS_TOTAL + 1))
     
     # MinIO
-    if curl -f http://localhost:9001 >/dev/null 2>&1; then
+    if curl -f http://${SERVER_IP}:${MINIO_CONSOLE_PORT} >/dev/null 2>&1; then
         echo -e "${GREEN}✅ MinIO is responding${NC}"
         TESTS_PASSED=$((TESTS_PASSED + 1))
     else
