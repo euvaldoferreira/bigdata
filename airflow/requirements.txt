@@ -14,7 +14,7 @@ sqlalchemy==1.4.49
 pyspark==3.4.1
 
 # Monitoring and logging
-prometheus-client==0.17.1
+prometheus-client==0.23.1
 
 # Development tools
 black==24.3.0
