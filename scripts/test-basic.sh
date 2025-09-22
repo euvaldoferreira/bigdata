@@ -1,172 +1,174 @@
 #!/bin/bash
-# Basic tests for BigData environment
-# Usage: ./scripts/test-basic.sh
 
-set -e
+# Carregar funções comuns
+source "$(dirname "$0")/common.sh"
 
-echo "🧪 Starting Basic Tests for BigData Environment"
-echo "================================================"
+# =================================================================================================
+# 🧪 BIGDATA BASIC TESTS SCRIPT
+# =================================================================================================
+# Testes básicos para o ambiente BigData
+# Uso: ./test-basic.sh ou make test-basic
+# =================================================================================================
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Function to get docker compose command
-get_docker_compose_cmd() {
-    if command -v docker &> /dev/null && docker compose version &> /dev/null 2>&1; then
-        echo "docker compose"
-    elif command -v docker-compose &> /dev/null; then
-        echo "docker-compose"
-    else
-        echo ""
-    fi
-}
-
-# Test counter
+# Contador de testes
 TESTS_TOTAL=0
 TESTS_PASSED=0
 TESTS_FAILED=0
 
-# Function to run test
+# Função para executar teste
 run_test() {
     local test_name="$1"
     local test_command="$2"
     
     TESTS_TOTAL=$((TESTS_TOTAL + 1))
-    echo -n "🔍 Testing: $test_name... "
+    echo -n "  🔍 $test_name... "
     
     if eval "$test_command" >/dev/null 2>&1; then
-        echo -e "${GREEN}PASS${NC}"
+        echo -e "${SUCCESS} PASS"
         TESTS_PASSED=$((TESTS_PASSED + 1))
     else
-        echo -e "${RED}FAIL${NC}"
+        echo -e "${ERROR} FAIL"
         TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
 }
 
-# Function to run test with output
+# Função para executar teste com saída verbosa
 run_test_verbose() {
     local test_name="$1"
     local test_command="$2"
     
     TESTS_TOTAL=$((TESTS_TOTAL + 1))
-    echo "🔍 Testing: $test_name"
+    echo -e "  🔍 Testando: ${CYAN}$test_name${NC}"
     
     if eval "$test_command"; then
-        echo -e "${GREEN}✅ PASS: $test_name${NC}"
+        echo -e "  ${SUCCESS} PASS: $test_name"
         TESTS_PASSED=$((TESTS_PASSED + 1))
     else
-        echo -e "${RED}❌ FAIL: $test_name${NC}"
+        echo -e "  ${ERROR} FAIL: $test_name"
         TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
     echo ""
 }
 
-echo "📋 Environment Setup Tests"
-echo "--------------------------"
-
-# Test 1: Check if .env exists
-run_test "Environment file exists" "[ -f .env ]"
-
-# Test 2: Check if Docker is running
-run_test "Docker is running" "docker info"
-
-# Test 3: Check if Docker Compose is available
-run_test "Docker Compose is available" "[ -n \"\$(get_docker_compose_cmd)\" ]"
-
-# Test 4: Check if Makefile exists and is valid
-run_test "Makefile exists and is valid" "make --dry-run help"
-
-echo ""
-echo "🚀 Basic Commands Tests"
-echo "-----------------------"
-
-# Test 5: Pre-check command
-run_test_verbose "Pre-check command" "make pre-check"
-
-# Test 6: Docker Compose config validation
-run_test_verbose "Docker Compose config" "\$(get_docker_compose_cmd) config"
-
-# Test 7: Help command
-run_test "Help command" "make help"
-
-echo ""
-echo "🐳 Environment Startup Tests"
-echo "----------------------------"
-
-# Test 8: Start lab environment
-echo "🚀 Starting lab environment (this may take a while)..."
-if timeout 300 make lab >/dev/null 2>&1; then
-    echo -e "${GREEN}✅ PASS: Lab environment started${NC}"
-    TESTS_PASSED=$((TESTS_PASSED + 1))
+# Função para testar configuração do ambiente
+test_environment_setup() {
+    show_section "Configuração do Ambiente" "📋"
     
-    # Wait for services to be ready
-    echo "⏳ Waiting for services to be ready..."
-    sleep 30
+    run_test "Arquivo .env existe" "[ -f .env ]"
+    run_test "Docker está rodando" "docker info"
+    run_test "Docker Compose disponível" "[ -n \"$DOCKER_CMD\" ]"
+    run_test "Makefile válido" "make --dry-run help"
+}
+
+# Função para testar comandos básicos
+test_basic_commands() {
+    show_section "Comandos Básicos" "🚀"
     
-    # Test 9: Check status
-    run_test_verbose "Status command" "make status"
+    run_test_verbose "Comando pre-check" "make pre-check"
+    run_test_verbose "Validação Docker Compose" "$DOCKER_CMD config"
+    run_test "Comando help" "make help"
+}
+
+# Função para testar inicialização do ambiente
+test_environment_startup() {
+    show_section "Inicialização do Ambiente" "🐳"
     
-    # Test 10: Health check
-    run_test_verbose "Health check" "make health"
-    
-    # Test 11: Check specific services
-    echo "🔍 Testing individual services..."
+    echo -e "  ${INFO} Iniciando ambiente de laboratório (pode demorar)..."
+    if timeout 300 make lab >/dev/null 2>&1; then
+        echo -e "  ${SUCCESS} Ambiente de laboratório iniciado"
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        
+        # Aguardar serviços ficarem prontos
+        echo -e "  ${INFO} Aguardando serviços ficarem prontos..."
+        sleep 30
+        
+        # Testar comandos de status
+        run_test_verbose "Comando status" "make status"
+        run_test_verbose "Verificação de saúde" "make health"
+        
+        # Testar serviços específicos
+        test_individual_services
+        
+        echo -e "  ${INFO} Limpando ambiente..."
+        make clean >/dev/null 2>&1 || true
+        
+    else
+        echo -e "  ${ERROR} Falha ao iniciar ambiente de laboratório"
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+    fi
+    TESTS_TOTAL=$((TESTS_TOTAL + 1))
+}
+
+# Função para testar serviços individuais
+test_individual_services() {
+    show_section "Serviços Individuais" "🔍"
     
     # Carregar configurações
-    if [ -f .env ]; then
-        source .env
-    fi
-    SERVER_IP=${SERVER_IP:-localhost}
-    JUPYTER_PORT=${JUPYTER_PORT:-8888}
-    MINIO_CONSOLE_PORT=${MINIO_CONSOLE_PORT:-9001}
+    load_env_if_exists
     
-    # Jupyter
-    if curl -f http://${SERVER_IP}:${JUPYTER_PORT} >/dev/null 2>&1; then
-        echo -e "${GREEN}✅ Jupyter is responding${NC}"
+    # URLs dos serviços
+    local jupyter_url=$(get_service_url "jupyter")
+    local minio_url=$(get_service_url "minio")
+    
+    # Teste Jupyter
+    TESTS_TOTAL=$((TESTS_TOTAL + 1))
+    if curl -f "$jupyter_url" >/dev/null 2>&1; then
+        echo -e "  ${SUCCESS} Jupyter respondendo"
         TESTS_PASSED=$((TESTS_PASSED + 1))
     else
-        echo -e "${YELLOW}⚠️  Jupyter not responding (may be normal)${NC}"
+        echo -e "  ${WARNING} Jupyter não responde (pode ser normal)"
     fi
-    TESTS_TOTAL=$((TESTS_TOTAL + 1))
     
-    # MinIO
-    if curl -f http://${SERVER_IP}:${MINIO_CONSOLE_PORT} >/dev/null 2>&1; then
-        echo -e "${GREEN}✅ MinIO is responding${NC}"
+    # Teste MinIO
+    TESTS_TOTAL=$((TESTS_TOTAL + 1))
+    if curl -f "$minio_url" >/dev/null 2>&1; then
+        echo -e "  ${SUCCESS} MinIO respondendo"
         TESTS_PASSED=$((TESTS_PASSED + 1))
     else
-        echo -e "${YELLOW}⚠️  MinIO not responding (may be normal)${NC}"
+        echo -e "  ${WARNING} MinIO não responde (pode ser normal)"
     fi
-    TESTS_TOTAL=$((TESTS_TOTAL + 1))
-    
-    echo ""
-    echo "🛑 Cleaning up..."
-    make clean >/dev/null 2>&1 || true
-    
-else
-    echo -e "${RED}❌ FAIL: Lab environment failed to start${NC}"
-    TESTS_FAILED=$((TESTS_FAILED + 1))
-fi
-TESTS_TOTAL=$((TESTS_TOTAL + 1))
+}
 
-echo ""
-echo "📊 Test Results"
-echo "==============="
-echo -e "Total Tests: ${BLUE}$TESTS_TOTAL${NC}"
-echo -e "Passed:      ${GREEN}$TESTS_PASSED${NC}"
-echo -e "Failed:      ${RED}$TESTS_FAILED${NC}"
+# Função para mostrar resultados dos testes
+show_test_results() {
+    show_section "Resultados dos Testes" "📊"
+    
+    echo -e "  Total de Testes: ${CYAN}$TESTS_TOTAL${NC}"
+    echo -e "  Aprovados:       ${GREEN}$TESTS_PASSED${NC}"
+    echo -e "  Reprovados:      ${RED}$TESTS_FAILED${NC}"
+    
+    if [ $TESTS_FAILED -eq 0 ]; then
+        echo ""
+        echo -e "  ${SUCCESS} ${GREEN}🎉 Todos os testes básicos passaram!${NC}"
+        echo -e "  ${INFO} O ambiente BigData está pronto para desenvolvimento."
+        return 0
+    else
+        echo ""
+        echo -e "  ${ERROR} ${RED}❌ Alguns testes falharam.${NC}"
+        echo -e "  ${WARNING} Verifique os problemas acima antes de prosseguir."
+        return 1
+    fi
+}
 
-if [ $TESTS_FAILED -eq 0 ]; then
-    echo ""
-    echo -e "${GREEN}🎉 All basic tests passed!${NC}"
-    echo "The BigData environment is ready for development."
-    exit 0
-else
-    echo ""
-    echo -e "${RED}❌ Some tests failed.${NC}"
-    echo "Please check the issues above before proceeding."
-    exit 1
-fi
+# Função principal
+main() {
+    # Inicialização comum
+    common_init
+    
+    # Header
+    show_header "🧪 BigData Basic Tests" "Testes básicos para o ambiente BigData"
+    
+    # Executar testes
+    test_environment_setup
+    test_basic_commands
+    test_environment_startup
+    
+    # Mostrar resultados
+    show_test_results
+    local exit_code=$?
+    
+    exit $exit_code
+}
+
+# Executar função principal
+main "$@"
