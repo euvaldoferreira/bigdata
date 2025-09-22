@@ -1,14 +1,16 @@
 #!/bin/bash
-set -e
 
-# Carregar .env se existir
-if [ -f .env ]; then
-    source .env
-else
-    echo "⚠️  Arquivo .env não encontrado. Usando valores padrão."
-fi
+# Carregar funções comuns
+source "$(dirname "$0")/common.sh"
 
-# Validar variáveis obrigatórias
+# =================================================================================================
+# 🚀 BIGDATA START SCRIPT
+# =================================================================================================
+# Script para iniciar o ambiente BigData
+# Uso: ./start.sh ou make start
+# =================================================================================================
+
+# Função para validar variáveis obrigatórias
 validate_required_vars() {
     local missing_vars=()
     
@@ -26,55 +28,68 @@ validate_required_vars() {
     fi
     
     if [ ${#missing_vars[@]} -gt 0 ]; then
-        echo "❌ Erro: As seguintes variáveis obrigatórias não estão definidas no .env:"
+        echo -e "${ERROR} Erro: As seguintes variáveis obrigatórias não estão definidas no .env:"
         printf "   - %s\n" "${missing_vars[@]}"
         echo ""
-        echo "💡 Configure essas variáveis no arquivo .env antes de continuar."
+        echo -e "${INFO} Configure essas variáveis no arquivo .env antes de continuar."
         echo "   Exemplo:"
-        echo "   AIRFLOW_ADMIN_PASSWORD=sua_senha_segura"
-        echo "   MINIO_ROOT_PASSWORD=sua_senha_minio"
-        echo "   JENKINS_ADMIN_PASSWORD=sua_senha_jenkins"
+        echo -e "   ${CYAN}AIRFLOW_ADMIN_PASSWORD=sua_senha_segura${NC}"
+        echo -e "   ${CYAN}MINIO_ROOT_PASSWORD=sua_senha_minio${NC}"
+        echo -e "   ${CYAN}JENKINS_ADMIN_PASSWORD=sua_senha_jenkins${NC}"
         exit 1
     fi
 }
 
-# Definir valores padrão se não estiverem no .env
-SERVER_IP=${SERVER_IP:-localhost}
-AIRFLOW_PORT=${AIRFLOW_PORT:-8080}
-JUPYTER_PORT=${JUPYTER_PORT:-8888}
-MINIO_CONSOLE_PORT=${MINIO_CONSOLE_PORT:-9001}
-SPARK_UI_PORT=${SPARK_UI_PORT:-8081}
-SPARK_LOCAL_UI_PORT=${SPARK_LOCAL_UI_PORT:-4040}
-JENKINS_PORT=${JENKINS_PORT:-8082}
-FLOWER_PORT=${FLOWER_PORT:-5555}
+# Função para iniciar os serviços
+start_services() {
+    show_section "Iniciando Serviços" "${CONTAINER}"
+    
+    echo -e "  ${INFO} Iniciando containers..."
+    $COMPOSE_CMD up -d
+    
+    echo -e "  ${INFO} Aguardando inicialização..."
+    sleep 10
+    
+    echo -e "  ${SUCCESS} Ambiente iniciado com sucesso!"
+}
 
-# Usuários padrão (senhas devem estar no .env)
-AIRFLOW_ADMIN_USER=${AIRFLOW_ADMIN_USER:-admin}
-MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
-JENKINS_ADMIN_USER=${JENKINS_ADMIN_USER:-admin}
+# Função para mostrar URLs de acesso após inicialização
+show_startup_urls() {
+    show_section "Serviços Disponíveis" "🌐"
+    
+    # URLs principais
+    echo -e "  🌐 Airflow:     ${CYAN}$(get_service_url "airflow")${NC}"
+    echo -e "  🌐 Jupyter:     ${CYAN}$(get_service_url "jupyter")${NC}"
+    echo -e "  🌐 MinIO:       ${CYAN}$(get_service_url "minio")${NC}"
+    echo -e "  🌐 Spark UI:    ${CYAN}$(get_service_url "spark")${NC}"
+    echo -e "  🌐 Spark Local: ${CYAN}$(get_service_url "spark-local")${NC}"
+    echo -e "  🌐 Jenkins:     ${CYAN}$(get_service_url "jenkins")${NC}"
+    echo -e "  🌐 Flower:      ${CYAN}$(get_service_url "flower")${NC}"
+}
 
-# Validar variáveis obrigatórias
-validate_required_vars
+# Função principal
+main() {
+    # Inicialização comum
+    common_init
+    
+    # Header
+    show_header "🚀 BigData Environment Startup" "Iniciando o ambiente BigData completo"
+    
+    # Validações
+    validate_required_vars
+    
+    # Iniciar serviços
+    start_services
+    
+    # Mostrar URLs
+    show_startup_urls
+    
+    # Dicas finais
+    show_section "Credenciais" "🔐"
+    echo -e "  ${INFO} Credenciais configuradas no arquivo .env"
+    
+    show_useful_commands
+}
 
-# Detectar comando docker
-CMD=$(command -v docker-compose >/dev/null 2>&1 && echo "docker-compose" || echo "docker compose")
-
-echo "🚀 Iniciando ambiente BigData..."
-$CMD up -d
-
-sleep 10
-
-echo "✅ Ambiente iniciado com sucesso!"
-echo ""
-echo "🌐 Serviços disponíveis:"
-echo "  • Airflow:     http://${SERVER_IP}:${AIRFLOW_PORT}"
-echo "  • Jupyter:     http://${SERVER_IP}:${JUPYTER_PORT}"
-echo "  • MinIO:       http://${SERVER_IP}:${MINIO_CONSOLE_PORT}"
-echo "  • Spark UI:    http://${SERVER_IP}:${SPARK_UI_PORT}"
-echo "  • Spark Local: http://${SERVER_IP}:${SPARK_LOCAL_UI_PORT}"
-echo "  • Jenkins:     http://${SERVER_IP}:${JENKINS_PORT}"
-echo "  • Flower:      http://${SERVER_IP}:${FLOWER_PORT}"
-echo ""
-echo "🔐 Credenciais configuradas no arquivo .env"
-echo "💡 Use 'make status' para verificar o status"
-echo "💡 Use 'make logs' para ver os logs"
+# Executar função principal
+main "$@"
