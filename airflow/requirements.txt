@@ -1,5 +1,5 @@
 # Core Python packages
-boto3==1.28.57
+boto3==1.40.55
 minio==7.1.17
 pandas==2.0.3
 pyarrow==14.0.1
